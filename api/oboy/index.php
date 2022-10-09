@@ -23,7 +23,7 @@ if (!$result) {
     exit();
 }
 
-// Instantiate oboy rooms object
+// Instantiate oboy object
 $oboy = new Oboy($db);
 
 // GET Request

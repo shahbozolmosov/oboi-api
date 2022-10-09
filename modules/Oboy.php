@@ -1,7 +1,7 @@
 <?php
 
 
-class Oboi
+class Oboy
 {
     // DB Stuff
     private $conn;
@@ -20,6 +20,7 @@ class Oboi
         // Create query
         $query = 'SELECT * FROM ' . $this->table;
 
+        // Execute query
         $result = $this->executeQuery($query);
         return json_encode($result);
     }
@@ -32,6 +33,31 @@ class Oboi
         // Create Query
         $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id='.$categoryId;
 
+        // Execute query
+        $result = $this->executeQuery($query);
+        $data = array();
+        foreach ($result as $row) {
+            array_push($data, [
+                'id' => $row['id'],
+                'name' => $row['name'],
+                'img' => $row['img'],
+                'bgimg' => $row['bgimg'],
+                'room_category_id' => $row['room_category_id'],
+            ]);
+        }
+
+        return count($data)?json_encode($data):false;
+    }
+
+    //Get Oboy
+    public function readOboy($categoryId = null)
+    {
+        if (!$this->conn || !$categoryId) return null;
+        $this->table = 'oboyimages';
+        // Create Query
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id='.$categoryId;
+
+        // Execute query
         $result = $this->executeQuery($query);
         $data = array();
         foreach ($result as $row) {

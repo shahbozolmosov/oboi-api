@@ -4,7 +4,7 @@ header('Access-Control-Allow-Origin: *');
 header("Content-Type: application/json; charset=utf8");
 
 require "../../config/Database.php";
-require "../../modules/Oboi.php";
+require "../../modules/Oboy.php";
 require "../../modules/CheckToken.php";
 
 // Instantiate DB & connect
@@ -22,12 +22,12 @@ if(!$result) {
     exit;
 }
 
-// Instantiate oboi categories object
-$oboi = new Oboi($db);
+// Instantiate oboy categories object
+$oboy = new Oboy($db);
 
 if($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Categories query
-    $result = $oboi->readCategories();
+    $result = $oboy->readCategories();
     echo $result;
     exit;
 }
