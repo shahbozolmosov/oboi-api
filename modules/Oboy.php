@@ -14,7 +14,7 @@ class Oboy
         $this->conn = $db;
     }
 
-    // Get Category
+    // Read Category
     public function readCategories()
     {
         // Create query
@@ -25,7 +25,7 @@ class Oboy
         return json_encode($result);
     }
 
-    //Get Rooms
+    //Read Rooms
     public function readRooms($categoryId = null)
     {
         if (!$this->conn || !$categoryId) return null;
@@ -49,7 +49,7 @@ class Oboy
         return count($data)?json_encode($data):false;
     }
 
-    //Get Oboy
+    //Read Oboy
     public function readOboy($categoryId = null)
     {
         if (!$this->conn || !$categoryId) return null;
