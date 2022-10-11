@@ -6,6 +6,7 @@ class Oboy
     // DB Stuff
     private $conn;
     private string $table = 'rooms_category';
+    private string $imageFolder = '../../oboy-images-room/';
 
     // Construct
     public function __construct($db = null)
@@ -18,7 +19,7 @@ class Oboy
     public function readCategories()
     {
         // Create query
-        $query = 'SELECT * FROM ' . $this->table;
+        $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC ';
 
         // Execute query
         $result = $this->executeQuery($query);
@@ -31,22 +32,23 @@ class Oboy
         if (!$this->conn || !$categoryId) return null;
         $this->table = 'rooms';
         // Create Query
-        $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id='.$categoryId;
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
 
         // Execute query
         $result = $this->executeQuery($query);
         $data = array();
         foreach ($result as $row) {
+            // Convert Image to base64
+            $bgImage = $this->convertImage("rooms/", $row['bgimg']);
             array_push($data, [
                 'id' => $row['id'],
-                'name' => $row['name'],
-                'img' => $row['img'],
-                'bgimg' => $row['bgimg'],
+                'img' => 'http://oboi-api/oboy-images-room/rooms/'.$row['img'],
+                'bgimg' => $bgImage,
                 'room_category_id' => $row['room_category_id'],
             ]);
         }
 
-        return count($data)?json_encode($data):false;
+        return count($data) ? json_encode($data) : false;
     }
 
     //Read Oboy
@@ -55,27 +57,45 @@ class Oboy
         if (!$this->conn || !$categoryId) return null;
         $this->table = 'oboyimages';
         // Create Query
-        $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id='.$categoryId;
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
 
         // Execute query
         $result = $this->executeQuery($query);
         $data = array();
         foreach ($result as $row) {
+            // Convert Image to base64
+            $image = $this->convertImage("oboys/", $row['img']);
             array_push($data, [
                 'id' => $row['id'],
                 'name' => $row['name'],
-                'img' => $row['img'],
-                'bgimg' => $row['bgimg'],
+                'img' => $image,
+                'article' => $row['article'],
+                'room_id' => $row['room_id'],
                 'room_category_id' => $row['room_category_id'],
             ]);
         }
 
-        return count($data)?json_encode($data):false;
+        return count($data) ? json_encode($data) : false;
     }
 
-    private function executeQuery($query=null): ?array
+    // Convert Image to base64
+    private function convertImage($folder = null, $image = null)
     {
-        if(!$query) return null;
+        if (!$folder || !$image) return null;
+        $path = $this->imageFolder;
+        $path .= $folder;
+        $path .= $image;
+
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        $data = file_get_contents($path);
+        $base64 = 'data:image/' . $ext . ';base64,' . base64_encode($data);
+        return $base64;
+    }
+
+    // Execute Query
+    private function executeQuery($query = null): ?array
+    {
+        if (!$query) return null;
         // Prepare statment
         $stmt = $this->conn->prepare($query);
 

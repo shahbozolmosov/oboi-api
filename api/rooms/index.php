@@ -19,6 +19,7 @@ $Authorization = $database->filter($requestHeaders['Authorization']);
 $checkToken = new CheckToken($db);
 $result = $checkToken->check($Authorization);
 if (!$result) {
+    echo 'Bad request';
     http_response_code(400);
     exit();
 }
@@ -31,8 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Get Rooms by categoryId
     if (isset($_GET['categoryId'])) {
         // Filter Params Value
-        $categoryId = $_GET['categoryId'];
-        $categoryId = $database->filter($categoryId);
+        $categoryId = intval($_GET['categoryId']);
 
         // Rooms query
         $result = $oboy->readRooms($categoryId);
