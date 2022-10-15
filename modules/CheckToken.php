@@ -35,6 +35,6 @@ class CheckToken
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             array_push($data, $row);
         }
-        return $data[0]['token'] === $token;
+        return $data[0]['token'] === md5($token);
     }
 }
