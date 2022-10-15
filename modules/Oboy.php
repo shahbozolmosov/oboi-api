@@ -36,6 +36,7 @@ class Oboy
 
         // Execute query
         $result = $this->executeQuery($query);
+
         $data = array();
         foreach ($result as $row) {
             // Convert Image to base64
@@ -61,6 +62,7 @@ class Oboy
 
         // Execute query
         $result = $this->executeQuery($query);
+
         $data = array();
         foreach ($result as $row) {
             // Convert Image to base64
