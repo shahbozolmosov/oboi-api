@@ -46,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         print(json_encode($result['data']));
         exit;
     } else if ($data->action === 'verification') {
+        // validation telefon with verification code
+        validation($data, ['telefon', 'code']);
         echo "Verification";
         exit();
     }
