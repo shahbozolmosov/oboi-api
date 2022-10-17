@@ -20,7 +20,7 @@ $checkToken = new CheckToken($db);
 $result = $checkToken->check($Authorization);
 if (!$result) {
     http_response_code(400);
-    echo 'Bad request';
+    print(json_encode(['message' => 'Bad Request!']));
     exit();
 }
 
