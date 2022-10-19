@@ -26,8 +26,6 @@ if (!$result) {
 
 //Instantiate user
 $user = new User($db);
-// echo time();
-// echo " <br>";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Get raw posted data
@@ -49,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else if ($data->action === 'verification') {
         // validation telefon with verification code
         validation($data, ['code']);
-        $user->verification = $database->filter($data->code);
+        $user->code = $database->filter($data->code);
         
         $result = $user->verification();
 

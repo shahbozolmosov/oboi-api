@@ -4,10 +4,13 @@
 class User
 {
   public string $telefon;
+  public string $code;
+
   private int $accessTimeLimit = 120; // seconds -> 2 min
   private int $waitTimeLimit = 30; // seconds -> 0.5 min
   private int $waitMaxTimeLimit = 72000; // seconds -> 20 hour
-  private string $sendMessageToUrl = 'http://91.204.239.44/broker-api/send';
+  private int $maxLimitAction = 10;
+  private string $messageUrl = 'http://91.204.239.44/broker-api/send';
 
   // DB Stuff
   private string $table = 'clients';
@@ -35,12 +38,10 @@ class User
       ];
     }
     // Check User Action
-    $result = $this->checkUserActions();
+    $result = $this->checkUserActions(3);
     if ($result !== 'ok') return $result;
 
-    // Change table
     $this->table = 'clients';
-
     $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
     $stmt = $this->conn->prepare($query);
     $stmt->bindParam(':telefon', $this->telefon);
@@ -58,7 +59,7 @@ class User
 
     return [
       'data' => [
-        'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring',
+        'error' => 'Xatolik! Ichki xatolik! Qaytadan urinib ko\'ring.',
       ],
       'status_code' => 500
     ];
@@ -77,18 +78,91 @@ class User
     }
 
     // Check User Actions
-    $checkResult = $this->checkUserActions();
+    $checkResult = $this->checkUserActions(6);
     if ($checkResult !== 'ok') return $checkResult;
 
     // Change table
-    $this->table = 'client';
+    $this->table = 'clients';
+    // Get user data from clients
+    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':telefon', $this->telefon);
+    $stmt->execute();
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Check user data
+    if ($userData) {
+      // Get user data
+      $userId = $userData['id'];
+      $code = $userData['code'];
 
-    return false;
+      // Get user data from actions 
+      $userActionData = $this->getUserActionData();
+      $action = $userActionData['urinish'] + 1;
+      $id = $userActionData['id'];
+
+      //Update user action
+      $result = $this->updateUserAction($action, $id);
+      if ($result !== 'ok') return $result;
+
+      if ($code === $this->code) {
+        // Generate token
+        $token = $this->generateToken();
+
+        $result = $this->updateUserToken($userId, $token);
+
+        if ($result !== 'ok') return $result;
+
+        // Update user last actve using token
+        $result = $this->setUserLastActive($token);
+        if ($result !== 'ok') return $result;
+
+        return [
+          'data' => [
+            'message' => 'Muvaffaqiyatli! Tizimga kirishingiz mumkin.',
+            'token' => $token
+          ],
+          'status_code' => 200
+        ];
+      }
+      return [
+        'data' => [
+          'error' => 'Xatolik! Kod noto\'g\'ri.',
+        ],
+        'status_code' => '400'
+      ];
+    }
+    return [
+      'data' => [
+        'error' => 'Xatolik! Bu foydalanuvchi mavjud emas!',
+      ],
+      'status_code' => '404'
+    ];
+  }
+
+  // setUserLastAvtive
+  protected function setUserLastActive($token)
+  {
+    $token = md5($token);
+    $this->table = 'clients';
+    $query = 'UPDATE ' . $this->table . ' SET last=:last WHERE token=:token';
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':last', time());
+    $stmt->bindParam(':token', $token);
+    if (!$stmt->execute()) {
+      return [
+        'data' => [
+          'error' => 'Xatolik! Ichki xatolik qaytadan urinib ko\'ring',
+        ],
+        'status_code' => 500
+      ];
+    }
+    return 'ok';
   }
 
   // Check user actions
-  private function checkUserActions()
+  private function checkUserActions($count = null)
   {
+    if(!$count || $count <! $this->maxLimitAction) return null;
     //Change table
     $this->table = 'actions';
 
@@ -102,18 +176,18 @@ class User
     $userId = $userActionData['id'];
 
 
-    if ($lastAction > 3) {
+    if ($lastAction > $count) {
       $time = time() - $lastActionTime;
       // Check user wait time
-      if ($lastAction > 3 && $lastAction <= 6) {
+      if ($lastAction > $count && $lastAction <= ($count + 3)) {
         $this->waitTimeLimit = 120; // 2 minute
-      } else if ($lastAction > 6 && $lastAction <= 10) {
+      } else if ($lastAction > ($count + 3) && $lastAction <= $this->maxLimitAction) {
         $this->waitTimeLimit = 1800; // 30 minute
-      } else if ($lastAction > 10) {
+      } else if ($lastAction > $this->maxLimitAction) {
         $this->waitTimeLimit = $this->waitMaxTimeLimit; // 20 hour
-      } else if($time > $this->waitMaxTimeLimit) { // end wait max time limit
+      } else if ($time > $this->waitMaxTimeLimit) { // end wait max time limit
         $result = $this->updateUserAction(0, $userId);
-        if($result !== 'ok') return $result;
+        if ($result !== 'ok') return $result;
       }
 
       $liveWaitTime = $this->waitTimeLimit - $time;
@@ -136,7 +210,7 @@ class User
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-      CURLOPT_URL => $this->sendMessageToUrl,
+      CURLOPT_URL => $this->messageUrl,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING => "",
       CURLOPT_MAXREDIRS => 10,
@@ -164,6 +238,7 @@ class User
   // Update user actions
   private function updateUserAction($actions, $userId)
   {
+    $this->table = 'actions';
     // Create query
     $query = 'UPDATE ' . $this->table . ' SET urinish=:actions, last=:last WHERE id=:id';
 
@@ -179,8 +254,7 @@ class User
     if ($stmt->execute()) return 'ok';
     return [
       'data' => [
-        'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring',
-        'erorr: ' . $stmt->error
+        'erorr' . 'Erorr: ' . $stmt->error,
       ],
       'status_code' => 500
     ];
@@ -195,15 +269,15 @@ class User
     $result = $this->sendMessage($this->telefon, $code);
 
     if ($result === 'ok') {
+      // Change table
+      $this->table = 'clients';
+
 
       // Create query
       $query = 'INSERT INTO ' . $this->table . ' SET telefon=:telefon, code=:code, fio="", korxona="", region="", manzil="", shaxs_turi="", qarz=0, seriya="", balans=0, sana=0, lastfoiz=0, token="", parol="", last=0 ';
 
       // Prepare statment
       $stmt = $this->conn->prepare($query);
-
-      // Convert code to md5
-      $code = md5($code);
 
       // Bind data
       $stmt->bindParam(':telefon', $this->telefon);
@@ -222,12 +296,12 @@ class User
 
         if ($stmt->execute()) {
           $resTel = $this->telefon;
-          $resTel = '********'.($resTel[strlen($resTel) -2].$resTel[strlen($resTel) -1]);
+          $resTel = '********' . ($resTel[strlen($resTel) - 2] . $resTel[strlen($resTel) - 1]);
           // return success message
           return [
             'data' => [
               'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
-            'accessTime' => $this->accessTimeLimit,
+              'accessTime' => $this->accessTimeLimit,
             ],
             'status_code' => 200
           ];
@@ -243,17 +317,19 @@ class User
     $code = $this->generateCode();
 
     // Send message
-    $result = $this->sendMessage($this->telefon, $code);
+    // $result = $this->sendMessage($this->telefon, $code);
+    $result = 'ok';
 
     if ($result === 'ok') {
+      // Change table
+      $this->table = 'clients';
+
       // Create query
       $query = 'UPDATE ' . $this->table . ' SET code=:code WHERE id=:userId';
 
       // Prepare statment
       $stmt = $this->conn->prepare($query);
-
-      // Convert code to md5
-      $code = md5($code);
+      echo $code;
 
       // Bind data
       $stmt->bindParam(':code', $code);
@@ -271,8 +347,8 @@ class User
         if ($result !== 'ok') return $result;
 
         $resTel = $this->telefon;
-        $resTel = '********'.($resTel[strlen($resTel) -2].$resTel[strlen($resTel) -1]);
-        
+        $resTel = '********' . ($resTel[strlen($resTel) - 2] . $resTel[strlen($resTel) - 1]);
+
         // return success message
         return [
           'data' => [
@@ -284,6 +360,28 @@ class User
       }
     }
     return 'no';
+  }
+
+  // Update user token
+  private function updateUserToken($userId, $token)
+  {
+
+    // Update user token
+    $token = md5($token);
+    $this->table = 'clients';
+    $query = 'UPDATE ' . $this->table . ' SET token=:token WHERE id=:userId';
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':token', $token);
+    $stmt->bindParam(':userId', $userId);
+    if (!$stmt->execute()) {
+      return [
+        'data' => [
+          'error' => 'Erorr: ' . $stmt->error,
+        ],
+        'status_code' => 500
+      ];
+    }
+    return 'ok';
   }
 
   // Get user action data
@@ -304,5 +402,12 @@ class User
   private function generateCode()
   {
     return rand(10000, 99999);
+  }
+  // Generate token
+  private function generateToken()
+  {
+    $token = rand(10000, 99999);
+    $token .= time();
+    return md5($token);
   }
 }
