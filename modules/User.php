@@ -150,9 +150,9 @@ class User
         "Content-Type: application/json",
       ),
     ));
+    curl_exec($curl);
     $err = curl_error($curl);
     curl_close($curl);
-
 
     if ($err) {
       return "no";
@@ -191,9 +191,10 @@ class User
   {
     $code = $this->generateCode();
 
+    // Send message
     $result = $this->sendMessage($this->telefon, $code);
 
-    if ($result == 'ok') {
+    if ($result === 'ok') {
 
       // Create query
       $query = 'INSERT INTO ' . $this->table . ' SET telefon=:telefon, code=:code, fio="", korxona="", region="", manzil="", shaxs_turi="", qarz=0, seriya="", balans=0, sana=0, lastfoiz=0, token="", parol="", last=0 ';
@@ -239,10 +240,10 @@ class User
   {
     $code = $this->generateCode();
 
+    // Send message
     $result = $this->sendMessage($this->telefon, $code);
 
-
-    if ($result == 'ok') {
+    if ($result === 'ok') {
       // Create query
       $query = 'UPDATE ' . $this->table . ' SET code=:code WHERE id=:userId';
 
