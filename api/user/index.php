@@ -26,7 +26,8 @@ if (!$result) {
 
 //Instantiate user
 $user = new User($db);
-
+// echo time();
+// echo " <br>";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Get raw posted data
@@ -34,12 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validation action
     validation($data, ['action']);
 
+    // validation telefon
+    validation($data, ['telefon']);
+
+    $user->telefon = $database->filterPhoneNumber($data->telefon);
+
     if ($data->action === 'register') {
-        // validation telefon
-        validation($data, ['telefon']);
-
-        $user->telefon = $database->filterPhoneNumber($data->telefon);
-
         $result = $user->register();
 
         http_response_code($result['status_code']);
@@ -47,8 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } else if ($data->action === 'verification') {
         // validation telefon with verification code
-        validation($data, ['telefon', 'code']);
-        echo "Verification";
+        validation($data, ['code']);
+        $user->verification = $database->filter($data->code);
+        
+        $result = $user->verification();
+
+        http_response_code($result['status_code']);
+        print(json_encode($result['data']));
+        
         exit();
     }
 }

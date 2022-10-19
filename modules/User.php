@@ -4,10 +4,9 @@
 class User
 {
   public string $telefon;
-  private int $timeLimit = 3; // minute
-  private int $waitTimeLimit = 30; // seconds
-  private int $waitMaxTimeLimit = 72000; // day
-  private int $actionLimit = 3; // count
+  private int $accessTimeLimit = 120; // seconds -> 2 min
+  private int $waitTimeLimit = 30; // seconds -> 0.5 min
+  private int $waitMaxTimeLimit = 72000; // seconds -> 20 hour
   private string $sendMessageToUrl = 'http://91.204.239.44/broker-api/send';
 
   // DB Stuff
@@ -22,9 +21,11 @@ class User
     $this->conn = $db;
   }
 
+
   // REGISTER
-  public function checkUserActions()
+  public function register()
   {
+    // Check DB Connection
     if (!$this->conn) {
       return [
         'data' => [
@@ -33,40 +34,37 @@ class User
         'status_code' => 500,
       ];
     }
+    // Check User Action
+    $result = $this->checkUserActions();
+    if ($result !== 'ok') return $result;
 
-    // change table
-    $this->table = 'actions';
+    // Change table
+    $this->table = 'clients';
 
     $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
-
     $stmt = $this->conn->prepare($query);
     $stmt->bindParam(':telefon', $this->telefon);
     $stmt->execute();
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($userData) {
-      $userId = $userData['id'];
-      $lastAction = $userData['urinish'];
-      $lastActionTime = $userData['last'];
 
-      $time = time() - $lastActionTime;
-      $waitTime = $this->waitTimeLimit * $lastAction - $time;
-      if ($waitTime > 0) { // wait user
-        return [
-          'data' => [
-            'waitTime' => $waitTime,
-          ],
-          'status_code' => 400
-        ];
-      } else if ($time > 72000) {
-        $actions = 0;
-        $updateResult = $this->updateUserAction($actions, $userId);
-        if ($updateResult !== 'ok') return $updateResult;
-      }
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($userData) { // UPDATE USER VERIFICATION CODE
+      $result = $this->updateUserCode($userData['id']);
+      if ($result !== 'no') return $result;
+    } else { // CREATE USER WITH ADD VERIFIVATION CODE
+      $result = $this->createUser();
+      if ($result !== 'no') return $result;
     }
-    return 'ok';
+
+    return [
+      'data' => [
+        'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring',
+      ],
+      'status_code' => 500
+    ];
   }
 
-  public function register()
+  public function verification()
   {
     // Check DB Connection
     if (!$this->conn) {
@@ -80,103 +78,56 @@ class User
 
     // Check User Actions
     $checkResult = $this->checkUserActions();
-    if ($checkResult !== 'ok') {
-      return $checkResult;
-    }
+    if ($checkResult !== 'ok') return $checkResult;
 
     // Change table
-    $this->table = 'clients';
+    $this->table = 'client';
 
-    // Create query
-    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
+    return false;
+  }
 
-    // Prepare statment
+  // Check user actions
+  private function checkUserActions()
+  {
+    //Change table
+    $this->table = 'actions';
+
+    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon ';
     $stmt = $this->conn->prepare($query);
-
-    // Bind data
     $stmt->bindParam(':telefon', $this->telefon);
-
-    // Execute query
     $stmt->execute();
+    $userActionData = $stmt->fetch(PDO::FETCH_ASSOC);
+    $lastAction = $userActionData['urinish'];
+    $lastActionTime = $userActionData['last'];
+    $userId = $userActionData['id'];
 
-    // Fetch data
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-
-    //Check user data
-    if ($userData) { // update token
-
-      // User userData
-      $userId = $userData['id'];
-
-      $code = $this->generateCode();
-      
-      $result = $this->sendMessage($this->telefon, $code);
-
-      if ($result == 'ok') {
-        // Create query
-        $query = 'UPDATE ' . $this->table . ' SET code=:code WHERE id=:userId';
-
-        // Prepare statment
-        $stmt = $this->conn->prepare($query);
-
-        // Convert code to md5
-        $code = md5($code);
-
-        // Bind data
-        $stmt->bindParam(':code', $code);
-        $stmt->bindParam(':userId', $userId);
-
-        // Execute query
-        if ($stmt->execute()) {
-          // return success message
-          return [
-            'data' => [
-              'message' => $this->telefon,
-            ],
-            'status_code' => 200
-          ];
-        }
+    if ($lastAction > 3) {
+      $time = time() - $lastActionTime;
+      // Check user wait time
+      if ($lastAction > 3 && $lastAction <= 6) {
+        $this->waitTimeLimit = 120; // 2 minute
+      } else if ($lastAction > 6 && $lastAction <= 10) {
+        $this->waitTimeLimit = 1800; // 30 minute
+      } else if ($lastAction > 10) {
+        $this->waitTimeLimit = $this->waitMaxTimeLimit; // 20 hour
+      } else if($time > $this->waitMaxTimeLimit) { // end wait max time limit
+        $result = $this->updateUserAction(0, $userId);
+        if($result !== 'ok') return $result;
       }
-    } else { // add new user with generate token
-      $code = $this->generateCode();
 
-      // $result = $this->sendMessage($this->telefon, $code);
-      $result = 'ok';
-      if ($result == 'ok') {
-
-        // Create query
-        $query = 'INSERT INTO ' . $this->table . ' SET telefon=:telefon, code=:code, fio="", korxona="", region="", manzil="", shaxs_turi="", qarz=0, seriya="", balans=0, sana=0, lastfoiz=0, token="", parol="", last=0 ';
-
-        // Prepare statment
-        $stmt = $this->conn->prepare($query);
-
-        // Convert code to md5
-        $code = md5($code);
-
-        // Bind data
-        $stmt->bindParam(':telefon', $this->telefon);
-        $stmt->bindParam(':code', $code);
-
-        // Execute query with check
-        if ($stmt->execute()) {
-          // return success message
-          return [
-            'data' => [
-              'message' => $this->telefon,
-            ],
-            'status_code' => 200
-          ];
-        }
+      $liveWaitTime = $this->waitTimeLimit - $time;
+      if ($liveWaitTime > 0 && $time < $this->accessTimeLimit) {
+        return [
+          'data' => [
+            'message' => 'Urinishlar soni ko\'p! ' . $liveWaitTime . ' soniyadan so\'ng qayta urinib ko\'ring',
+            'waitTime' => $liveWaitTime,
+          ],
+          'status_code' => 400,
+        ];
       }
     }
-    // Return server error message
-    return [
-      'data' => [
-        'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring'
-      ],
-      'status_code' => 500,
-    ];
+    return 'ok';
   }
 
   // Send message to user phone
@@ -199,7 +150,6 @@ class User
         "Content-Type: application/json",
       ),
     ));
-    $result = curl_exec($curl);
     $err = curl_error($curl);
     curl_close($curl);
 
@@ -234,6 +184,114 @@ class User
       ],
       'status_code' => 500
     ];
+  }
+
+  //Create new user
+  private function createUser()
+  {
+    $code = $this->generateCode();
+
+    $result = $this->sendMessage($this->telefon, $code);
+
+    if ($result == 'ok') {
+
+      // Create query
+      $query = 'INSERT INTO ' . $this->table . ' SET telefon=:telefon, code=:code, fio="", korxona="", region="", manzil="", shaxs_turi="", qarz=0, seriya="", balans=0, sana=0, lastfoiz=0, token="", parol="", last=0 ';
+
+      // Prepare statment
+      $stmt = $this->conn->prepare($query);
+
+      // Convert code to md5
+      $code = md5($code);
+
+      // Bind data
+      $stmt->bindParam(':telefon', $this->telefon);
+      $stmt->bindParam(':code', $code);
+
+      // Execute query with check
+      if ($stmt->execute()) {
+        $this->table = 'actions';
+
+        $action = 1;
+        $query = 'INSERT INTO  ' . $this->table . ' SET last=:last, urinish=:action, telefon=:telefon';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':last', time());
+        $stmt->bindParam(':action', $action);
+        $stmt->bindParam(':telefon', $this->telefon);
+
+        if ($stmt->execute()) {
+          // return success message
+          return [
+            'data' => [
+              'telefon' => $this->telefon,
+              'accessTime' => $this->accessTimeLimit,
+            ],
+            'status_code' => 200
+          ];
+        }
+      }
+    }
+    return "no";
+  }
+
+  // Update user code
+  private function updateUserCode($userId)
+  {
+    $code = $this->generateCode();
+
+    $result = $this->sendMessage($this->telefon, $code);
+
+
+    if ($result == 'ok') {
+      // Create query
+      $query = 'UPDATE ' . $this->table . ' SET code=:code WHERE id=:userId';
+
+      // Prepare statment
+      $stmt = $this->conn->prepare($query);
+
+      // Convert code to md5
+      $code = md5($code);
+
+      // Bind data
+      $stmt->bindParam(':code', $code);
+      $stmt->bindParam(':userId', $userId);
+
+      // Execute query
+      if ($stmt->execute()) {
+
+        $userActionData = $this->getUserActionData();
+        $action = $userActionData['urinish'] + 1;
+        $id = $userActionData['id'];
+
+        $this->table = 'actions';
+        $result = $this->updateUserAction($action, $id);
+        if ($result !== 'ok') return $result;
+
+        // return success message
+        return [
+          'data' => [
+            'telefon' => $this->telefon,
+            'accessTime' => $this->accessTimeLimit,
+          ],
+          'status_code' => 200
+        ];
+      }
+    }
+    return 'no';
+  }
+
+  // Get user action data
+  private function getUserActionData()
+  {
+    // change table
+    $this->table = 'actions';
+
+    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':telefon', $this->telefon);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
   }
 
   // Generate message code
