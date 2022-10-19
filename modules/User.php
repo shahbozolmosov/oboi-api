@@ -221,11 +221,13 @@ class User
         $stmt->bindParam(':telefon', $this->telefon);
 
         if ($stmt->execute()) {
+          $resTel = $this->telefon;
+          $resTel = '********'.($resTel[strlen($resTel) -2].$resTel[strlen($resTel) -1]);
           // return success message
           return [
             'data' => [
-              'telefon' => $this->telefon,
-              'accessTime' => $this->accessTimeLimit,
+              'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
+            'accessTime' => $this->accessTimeLimit,
             ],
             'status_code' => 200
           ];
@@ -268,10 +270,13 @@ class User
         $result = $this->updateUserAction($action, $id);
         if ($result !== 'ok') return $result;
 
+        $resTel = $this->telefon;
+        $resTel = '********'.($resTel[strlen($resTel) -2].$resTel[strlen($resTel) -1]);
+        
         // return success message
         return [
           'data' => [
-            'telefon' => $this->telefon,
+            'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
             'accessTime' => $this->accessTimeLimit,
           ],
           'status_code' => 200
