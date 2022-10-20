@@ -3,17 +3,17 @@
 
 class User
 {
-  public string $telefon;
-  public string $code;
+  public $telefon;
+  public $code;
 
-  private int $accessTimeLimit = 120; // seconds -> 2 min
-  private int $waitTimeLimit = 30; // seconds -> 0.5 min
-  private int $waitMaxTimeLimit = 72000; // seconds -> 20 hour
-  private int $maxLimitAction = 10;
-  private string $messageUrl = 'http://91.204.239.44/broker-api/send';
+  private $accessTimeLimit = 120; // seconds -> 2 min
+  private $waitTimeLimit = 30; // seconds -> 0.5 min
+  private $waitMaxTimeLimit = 72000; // seconds -> 20 hour
+  private $maxLimitAction = 10;
+  private $messageUrl = 'http://91.204.239.44/broker-api/send';
 
   // DB Stuff
-  private string $table = 'clients';
+  private $table = 'clients';
   private $conn;
 
 

@@ -2,10 +2,10 @@
 class Database
 {
     // DB Params
-    private string $host = 'localhost';
-    private string $db_name = 'oboiapi';
-    private string $username = 'mysql';
-    private string $password = 'mysql';
+    private $host = 'localhost';
+    private $db_name = 'oboiapi';
+    private $username = 'mysql';
+    private $password = 'mysql';
 
     // DB Connect
     public function connect()

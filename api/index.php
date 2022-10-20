@@ -1,3 +1,8 @@
 <?php
 http_response_code(400);
-echo md5('6fa3e2af8fa3aab2769a434fc732be05');
+
+$a = rand(10000, 99999);
+
+$a = time();
+
+echo md5('86a1d75203ad29ed232c5a424319d9b6'); 

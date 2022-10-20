@@ -5,8 +5,8 @@ class Oboy
 {
     // DB Stuff
     private $conn;
-    private string $table = 'rooms_category';
-    private string $imageFolder = '../../oboy-images-room/';
+    private $table = 'rooms_category';
+    private $imageFolder = '../../oboy-images-room/';
 
     // Construct
     public function __construct($db = null)
