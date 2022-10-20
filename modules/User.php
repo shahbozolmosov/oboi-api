@@ -317,8 +317,8 @@ class User
     $code = $this->generateCode();
 
     // Send message
-    // $result = $this->sendMessage($this->telefon, $code);
-    $result = 'ok';
+    $result = $this->sendMessage($this->telefon, $code);
+    
 
     if ($result === 'ok') {
       // Change table
@@ -329,7 +329,6 @@ class User
 
       // Prepare statment
       $stmt = $this->conn->prepare($query);
-      echo $code;
 
       // Bind data
       $stmt->bindParam(':code', $code);
