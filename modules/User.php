@@ -42,13 +42,8 @@ class User
     $result = $this->checkUserActions(3);
     if ($result !== 'ok') return $result;
 
-    $this->table = 'clients';
-    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
-    $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':telefon', $this->telefon);
-    $stmt->execute();
-
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    //Get user data
+    $userData = $this->getUserData();
 
     if ($userData) { // UPDATE USER VERIFICATION CODE
       $result = $this->updateUserCode($userData['id']);
@@ -82,7 +77,9 @@ class User
     $checkResult = $this->checkUserActions(6);
     if ($checkResult !== 'ok') return $checkResult;
 
+    // Get user data
     $userData = $this->getUserData();
+    
     // Check user data
     if ($userData) {
       // Get user data
@@ -92,24 +89,28 @@ class User
       // Get user data from actions 
       $userActionData = $this->getUserActionData();
       $action = $userActionData['urinish'] + 1;
-      $id = $userActionData['id'];
+      $actionUserId = $userActionData['id'];
 
       //Update user action
-      $result = $this->updateUserAction($action, $id);
+      $result = $this->updateUserAction($action, $actionUserId);
       if ($result !== 'ok') return $result;
-
+      
       if ($code === $this->code) {
         // Generate token
         $token = $this->generateToken();
 
+        // Update user token
         $result = $this->updateUserToken($userId, $token);
-
         if ($result !== 'ok') return $result;
 
         // Update user last actve using token
         $result = $this->setUserLastActive($token);
         if ($result !== 'ok') return $result;
-
+        
+        //Update user action
+        $result = $this->updateUserAction(0, $actionUserId);
+        if ($result !== 'ok') return $result;
+        
         return [
           'data' => [
             'message' => 'Muvaffaqiyatli! Tizimga kirishingiz mumkin.',
