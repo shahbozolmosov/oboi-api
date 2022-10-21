@@ -3,6 +3,8 @@ class Profile extends User
 {
   public $token;
 
+  public $fio;
+
   // Read orders
   public function readOrders()
   {
@@ -142,5 +144,60 @@ class Profile extends User
       ],
       'status_code' => 404
     ];
+  }
+
+  // Update user data
+  public function updateUserData()
+  {
+    // Check DB Connection
+    if (!$this->conn) {
+      return [
+        'data' => [
+          'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring'
+        ],
+        'status_code' => 500,
+      ];
+    }
+
+    $userData = $this->getUserData($this->token);
+
+    if ($userData) {
+      $result = $this->updateUserDataQuery();
+
+      if ($result !== 'ok') return $result;
+      return [
+        'data' => [
+          'telefon' => $userData['telefon'],
+          'fio' => $this->fio,
+        ],
+        'status_code' => 200
+      ];
+    }
+
+    return [
+      'data' => [
+        'message' => 'Ma\'lumot topilmadi.'
+      ],
+      'status_code' => 404
+    ];
+  }
+
+  private function updateUserDataQuery()
+  {
+    $this->table = 'clients';
+    $query = 'UPDATE ' . $this->table . ' SET fio=:fio, telefon=:telefon WHERE token=:token';
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':fio', $this->fio);
+    $stmt->bindParam(':telefon', $this->telefon);
+    $stmt->bindParam(':token', $this->token);
+    if (!$stmt->execute()) {
+      return [
+        'data' => [
+          'erorr' => 'Error: ' . $stmt->error()
+        ],
+        'status_code' => 500
+      ];
+    }
+    return 'ok';
   }
 }

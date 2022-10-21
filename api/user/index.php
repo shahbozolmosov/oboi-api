@@ -31,7 +31,9 @@ $user = new User($db);
 // Get raw posted data
 $data = json_decode(file_get_contents("php://input"));
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$profile = new Profile($db);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
 
     // Validation action
     validation($data, ['action']);
@@ -51,22 +53,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // validation telefon with verification code
         validation($data, ['code']);
         $user->code = $database->filter($data->code);
-        
+
         $result = $user->verification();
 
         http_response_code($result['status_code']);
         print(json_encode($result['data']));
-        
+
         exit();
     }
-}else if($_SERVER['REQUEST_METHOD'] === 'GET') {
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET
     // validation token
     validation($data, ['token']);
-    
-    $profile = new Profile($db);
+
     $profile->token = md5($data->token);
 
     $result = $profile->readUserData();
+    http_response_code($result['status_code']);
+    print(json_encode($result['data']));
+    exit;
+} else if ($_SERVER['REQUEST_METHOD'] === 'PUT') { // PUT
+    // validation token, fio, telefon
+    validation($data, ['token', 'telefon', 'fio']);
+
+    $profile->token = md5($data->token);
+    $profile->telefon = $database->filter($data->telefon);
+    $profile->fio = $database->filter($data->fio);
+
+    $result = $profile->updateUserData();
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
     exit;
@@ -75,17 +88,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // VALIDATION
 function validation($data, $checkParam)
 {
+    $error = [];
     foreach ($checkParam as $key => $value) {
         $paramValue = $data->{$value};
-        if ($paramValue === null) {
-            http_response_code(400);
-            print(json_encode('`' . $value . '` talab qilinadi!')) ;
-            exit();
-        }else if($paramValue === '') {
-            http_response_code(400);
-            print(json_encode('`' . $value . '` bo\'sh qator bo\'lmasin!')) ;
-            exit();
+        if ($paramValue === null) { // check isset
+            $error[] = '`' . $value . '` talab qilinadi!';
         }
+        if ($paramValue === '') { // check empty
+            $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
+        }
+    }
+
+    if ($error) {
+        http_response_code(400);
+        print(json_encode($error));
+        exit();
     }
 }
 

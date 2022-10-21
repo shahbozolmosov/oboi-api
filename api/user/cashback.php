@@ -47,16 +47,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 // VALIDATION
 function validation($data, $checkParam)
 {
+    $error = [];
     foreach ($checkParam as $key => $value) {
         $paramValue = $data->{$value};
-        if ($paramValue === null) {
-            http_response_code(400);
-            print(json_encode('`' . $value . '` talab qilinadi!'));
-            exit();
-        } else if ($paramValue === '') {
-            http_response_code(400);
-            print(json_encode('`' . $value . '` bo\'sh qator bo\'lmasin!'));
-            exit();
+        if ($paramValue === null) { // check isset
+            $error[] = '`' . $value . '` talab qilinadi!';
         }
+        if ($paramValue === '') { // check empty
+            $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
+        }
+    }
+
+    if ($error) {
+        http_response_code(400);
+        print(json_encode($error));
+        exit();
     }
 }
