@@ -14,7 +14,8 @@ class User
 
   // DB Stuff
   private $table = 'clients';
-  private $conn;
+
+  protected $conn;
 
 
   // Construct
@@ -81,14 +82,7 @@ class User
     $checkResult = $this->checkUserActions(6);
     if ($checkResult !== 'ok') return $checkResult;
 
-    // Change table
-    $this->table = 'clients';
-    // Get user data from clients
-    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
-    $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':telefon', $this->telefon);
-    $stmt->execute();
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    $userData = $this->getUserData();
     // Check user data
     if ($userData) {
       // Get user data
@@ -139,8 +133,22 @@ class User
     ];
   }
 
+  // Get UserData
+  protected function getUserData($token='null')
+  {
+     // Change table
+     $this->table = 'clients';
+     // Get user data from clients
+     $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon OR token=:token';
+     $stmt = $this->conn->prepare($query);
+     $stmt->bindParam(':telefon', $this->telefon);
+     $stmt->bindParam(':token', $token);
+     $stmt->execute();
+     return $stmt->fetch(PDO::FETCH_ASSOC);
+  }
+  
   // setUserLastAvtive
-  protected function setUserLastActive($token)
+  private function setUserLastActive($token)
   {
     $token = md5($token);
     $this->table = 'clients';

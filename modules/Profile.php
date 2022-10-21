@@ -3,14 +3,7 @@ class Profile extends User
 {
   public $token;
 
-  private $conn;
   private $table = 'order_clients';
-
-  public function __construct($db)
-  {
-    if (!$db) return null;
-    $this->conn = $db;
-  }
 
   public function readOrders()
   {
@@ -23,27 +16,29 @@ class Profile extends User
         'status_code' => 500,
       ];
     }
+    // // Change table
+    // $this->table = 'clients';
 
-    // Change table
-    $this->table = 'clients';
+    // $query = 'SELECT id, balans FROM ' . $this->table . ' WHERE token=:token';
+    // $stmt = $this->conn->prepare($query);
+    // $stmt->bindParam(':token', $this->token);
+    // $stmt->execute();
 
-    $query = 'SELECT id, balans FROM ' . $this->table . ' WHERE token=:token';
-    $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':token', $this->token);
-    $stmt->execute();
-
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    // $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    $userData = $this->getUserData($this->token);
     $userId = $userData['id'];
     $userBalans = $userData['balans'];
     
     if ($userData) {
       // Change table
       $this->table = 'order_clients';
+      // Create query
       $query = 'SELECT * FROM order_clients WHERE client_id=:userId  ORDER BY id DESC';
       $stmt = $this->conn->prepare($query);
       $stmt->bindParam(':userId', $userId);
       $stmt->execute();
       $orderData = [];
+      // Fetch data
       while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $newRow = [
           'id' => $row['id'],

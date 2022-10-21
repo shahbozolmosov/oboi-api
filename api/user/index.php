@@ -26,6 +26,7 @@ if (!$result) {
 
 //Instantiate user
 $user = new User($db);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Get raw posted data
