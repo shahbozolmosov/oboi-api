@@ -8,6 +8,7 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type
 require_once "../../config/Database.php";
 require_once "../../modules/User.php";
 require_once "../../modules/CheckToken.php";
+require_once "../../modules/Profile.php";
 
 // Instantiate DB & connect
 $database = new Database();
@@ -27,10 +28,11 @@ if (!$result) {
 //Instantiate user
 $user = new User($db);
 
+// Get raw posted data
+$data = json_decode(file_get_contents("php://input"));
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Get raw posted data
-    $data = json_decode(file_get_contents("php://input"));
     // Validation action
     validation($data, ['action']);
 
@@ -57,6 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         exit();
     }
+}else if($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // validation token
+    validation($data, ['token']);
+    
+    $profile = new Profile($db);
+    $profile->token = md5($data->token);
+
+    $result = $profile->readUserData();
+    http_response_code($result['status_code']);
+    print(json_encode($result['data']));
+    exit;
 }
 
 // VALIDATION

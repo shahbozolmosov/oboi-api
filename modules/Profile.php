@@ -109,4 +109,38 @@ class Profile extends User
       'status_code' => 404
     ];
   }
+
+  // Read user data
+  public function readUserData()
+  {
+    // Check DB Connection
+    if (!$this->conn) {
+      return [
+        'data' => [
+          'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring'
+        ],
+        'status_code' => 500,
+      ];
+    }
+
+    $userData = $this->getUserData($this->token);
+
+    if ($userData) {
+      $resData = [
+        'fio' => $userData['fio'],
+        'telefon' => $userData['telefon'],
+      ];
+      return [
+        'data' => $resData,
+        'status_code' => 200
+      ];
+    }
+
+    return [
+      'data' => [
+        'message' => 'Ma\'lumot topilmadi.'
+      ],
+      'status_code' => 404
+    ];
+  }
 }
