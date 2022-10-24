@@ -4,6 +4,67 @@ class Profile extends User
   public $token;
 
   public $fio;
+  public $location;
+  public $article;
+  public $count;
+  public $cashback;
+
+  // Create orider
+  public function createOrder()
+  {
+    // Check DB Connection
+    if (!$this->conn) {
+      return [
+        'data' => [
+          'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring'
+        ],
+        'status_code' => 500,
+      ];
+    }
+
+    $userData = $this->getUserData($this->token);
+
+    if ($userData) {
+      $userId = $userData['id'];
+      $userPhone = $userData['telefon'];
+
+      $this->table = 'order_clients';
+
+      $query = 'INSERT INTO ' . $this->table . ' SET article=:article, client_id=:userId, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
+      $stmt = $this->conn->prepare($query);
+      $stmt->bindParam(':article', $this->article);
+      $stmt->bindParam(':userId', $userId);
+      $stmt->bindParam(':phone', $userPhone);
+      $stmt->bindParam(':count', $this->count);
+      $stmt->bindParam(':location', $this->location);
+      $stmt->bindParam(':date', time());
+      $stmt->bindParam(':cashback', $this->cashback);
+
+      if (!$stmt->execute()) {
+        return [
+          'data' => [
+            'message' => 'Ichki xatolik!'
+          ],
+          'status_code' => 500
+        ];
+        exit;
+      }
+      return [
+        'data' => [
+          'message' => 'Buyurtma qabul qilindi!'
+        ],
+        'status_code' => 200
+      ];
+      exit;
+    }
+
+    return [
+      'data' => [
+        'message' => 'Bad request.'
+      ],
+      'status_code' => 400
+    ];
+  }
 
   // Read orders
   public function readOrders()
@@ -54,15 +115,21 @@ class Profile extends User
           'status_code' => 200
         ];
       }
+      return [
+        'data' => [
+          'message' => 'Ma\'lumot topilmadi!.'
+        ],
+        'status_code' => 404
+      ];
     }
 
 
 
     return [
       'data' => [
-        'message' => 'Ma\'lumot topilmadi.'
+        'message' => 'Bad request.'
       ],
-      'status_code' => 404
+      'status_code' => 400
     ];
   }
 

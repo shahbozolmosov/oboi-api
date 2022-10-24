@@ -27,21 +27,39 @@ if (!$result) {
 
 
 $profile = new Profile($db);
-// GET Request
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get raw posted data
-    $data = json_decode(file_get_contents("php://input"));
 
-    // validation token
-    validation($data, ['token']);
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    $data = json_decode(file_get_contents('php://input'));
+    // Validation
+    validation($data, ['token', 'location', 'article', 'count', 'cashback']);
     
+    // Filter values
     $profile->token = md5($data->token);
+    $profile->location = $database->filter($data->location);
+    $profile->article = $database->filter($data->article);
+    $profile->count = $database->filter($data->count);
+    $profile->cashback = $database->filter($data->cashback);
 
-    $result = $profile->readOrders();
+    //Order
+    $result = $profile->createOrder();
+    
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
     exit;
     
+}else if ($_SERVER['REQUEST_METHOD'] === 'GET') {// GET Request
+    // Check token
+    if (isset($_GET['token']) && !empty($_GET['token'])) {
+        $profile->token = md5($_GET['token']);
+
+        $result = $profile->readOrders();
+        http_response_code($result['status_code']);
+        print(json_encode($result['data']));
+        exit;
+    }
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad request!']));
+    exit;
 }
 
 // VALIDATION

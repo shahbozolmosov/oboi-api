@@ -29,38 +29,16 @@ if (!$result) {
 $profile = new Profile($db);
 // GET Request
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get raw posted data
-    $data = json_decode(file_get_contents("php://input"));
+    // Check token
+    if (isset($_GET['token']) && !empty($_GET['token'])) {
+        $profile->token = md5($_GET['token']);
 
-    // validation token
-    validation($data, ['token']);
-    
-    $profile->token = md5($data->token);
-
-    $result = $profile->readCashback();
-    http_response_code($result['status_code']);
-    print(json_encode($result['data']));
+        $result = $profile->readCashback();
+        http_response_code($result['status_code']);
+        print(json_encode($result['data']));
+        exit;
+    }
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad request!']));
     exit;
-    
-}
-
-// VALIDATION
-function validation($data, $checkParam)
-{
-    $error = [];
-    foreach ($checkParam as $key => $value) {
-        $paramValue = $data->{$value};
-        if ($paramValue === null) { // check isset
-            $error[] = '`' . $value . '` talab qilinadi!';
-        }
-        if ($paramValue === '') { // check empty
-            $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
-        }
-    }
-
-    if ($error) {
-        http_response_code(400);
-        print(json_encode($error));
-        exit();
-    }
 }
