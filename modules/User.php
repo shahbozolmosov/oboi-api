@@ -88,8 +88,19 @@ class User
 
       // Get user data from actions 
       $userActionData = $this->getUserActionData();
-      $action = $userActionData['urinish'] + 1;
+      $action = $userActionData['urinish']+1;
       $actionUserId = $userActionData['id'];
+      $actionTime = $userActionData['last'];
+
+      // Check access time limit
+      if(time() - $actionTime > $this->accessTimeLimit){
+        return [
+          'data' => [
+            'message' => 'Tasdiqlash vaqti tugadi!'
+          ],
+          'status_code' => 400
+        ];
+      }
 
       //Update user action
       $result = $this->updateUserAction($action, $actionUserId);
@@ -121,14 +132,14 @@ class User
       }
       return [
         'data' => [
-          'error' => 'Xatolik! Kod noto\'g\'ri.',
+          'message' => 'Xatolik! Kod noto\'g\'ri.',
         ],
         'status_code' => '400'
       ];
     }
     return [
       'data' => [
-        'error' => 'Xatolik! Bu foydalanuvchi mavjud emas!',
+        'error' => 'Noto\'g\'ri surov!',
       ],
       'status_code' => '404'
     ];
@@ -205,12 +216,12 @@ class User
         if ($liveWaitTime <= 3600) {
           $m = floor($liveWaitTime / 60);
           $s = floor($liveWaitTime % 60);
-          $s = $s<10?'0'.$s:$s;
+          $s = $s < 10 ? '0' . $s : $s;
           $formatTime = $m . ':' . $s . ' soniyadan so\'ng qayta urinib ko\'ring';
-        }else if($liveWaitTime > 3600 && $liveWaitTime <= 86400) {
+        } else if ($liveWaitTime > 3600 && $liveWaitTime <= 86400) {
           $h = floor($liveWaitTime / 3600);
           $m = floor(($liveWaitTime % 3600) / 60);
-          $m = $m<10?'0'.$m:$m;
+          $m = $m < 10 ? '0' . $m : $m;
           $formatTime = $h . ':' . $m . ' soatdan so\'ng qayta urinib ko\'ring';
         }
 
@@ -374,7 +385,7 @@ class User
         // return success message
         return [
           'data' => [
-            'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
+            'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
             'accessTime' => $this->accessTimeLimit,
             'codeee' => $code
           ],
