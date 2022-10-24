@@ -13,17 +13,6 @@ require "../../modules/CheckToken.php";
 $database = new Database();
 $db = $database->connect();
 
-// Check token
-$requestHeaders = apache_request_headers();
-$Authorization = $database->filter($requestHeaders['Authorization']);
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Request!']));
-    exit();
-}
-
 // Instantiate oboy object
 $oboy = new Oboy($db);
 

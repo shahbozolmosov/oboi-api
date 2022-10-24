@@ -79,7 +79,7 @@ class User
 
     // Get user data
     $userData = $this->getUserData();
-    
+
     // Check user data
     if ($userData) {
       // Get user data
@@ -94,7 +94,7 @@ class User
       //Update user action
       $result = $this->updateUserAction($action, $actionUserId);
       if ($result !== 'ok') return $result;
-      
+
       if ($code === $this->code) {
         // Generate token
         $token = $this->generateToken();
@@ -106,11 +106,11 @@ class User
         // Update user last actve using token
         $result = $this->setUserLastActive($token);
         if ($result !== 'ok') return $result;
-        
+
         //Update user action
         $result = $this->updateUserAction(0, $actionUserId);
         if ($result !== 'ok') return $result;
-        
+
         return [
           'data' => [
             'message' => 'Muvaffaqiyatli! Tizimga kirishingiz mumkin.',
@@ -135,19 +135,19 @@ class User
   }
 
   // Get UserData
-  protected function getUserData($token='null')
+  protected function getUserData($token = 'null')
   {
-     // Change table
-     $this->table = 'clients';
-     // Get user data from clients
-     $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon OR token=:token';
-     $stmt = $this->conn->prepare($query);
-     $stmt->bindParam(':telefon', $this->telefon);
-     $stmt->bindParam(':token', $token);
-     $stmt->execute();
-     return $stmt->fetch(PDO::FETCH_ASSOC);
+    // Change table
+    $this->table = 'clients';
+    // Get user data from clients
+    $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon OR token=:token';
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':telefon', $this->telefon);
+    $stmt->bindParam(':token', $token);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
   }
-  
+
   // setUserLastAvtive
   private function setUserLastActive($token)
   {
@@ -171,7 +171,7 @@ class User
   // Check user actions
   private function checkUserActions($count = null)
   {
-    if(!$count || $count <! $this->maxLimitAction) return null;
+    if (!$count || $count < !$this->maxLimitAction) return null;
     //Change table
     $this->table = 'actions';
 
@@ -201,9 +201,22 @@ class User
 
       $liveWaitTime = $this->waitTimeLimit - $time;
       if ($liveWaitTime > 0 && $time < $this->accessTimeLimit) {
+        $formatTime = 0;
+        if ($liveWaitTime <= 3600) {
+          $m = floor($liveWaitTime / 60);
+          $s = floor($liveWaitTime % 60);
+          $s = $s<10?'0'.$s:$s;
+          $formatTime = $m . ':' . $s . ' soniyadan so\'ng qayta urinib ko\'ring';
+        }else if($liveWaitTime > 3600 && $liveWaitTime <= 86400) {
+          $h = floor($liveWaitTime / 3600);
+          $m = floor(($liveWaitTime % 3600) / 60);
+          $m = $m<10?'0'.$m:$m;
+          $formatTime = $h . ':' . $m . ' soatdan so\'ng qayta urinib ko\'ring';
+        }
+
         return [
           'data' => [
-            'message' => 'Urinishlar soni ko\'p! ' . $liveWaitTime . ' soniyadan so\'ng qayta urinib ko\'ring',
+            'message' => 'Urinishlar soni ko\'p! ' . $formatTime,
             'waitTime' => $liveWaitTime,
           ],
           'status_code' => 400,
@@ -326,8 +339,9 @@ class User
     $code = $this->generateCode();
 
     // Send message
-    $result = $this->sendMessage($this->telefon, $code);
-    
+    // $result = $this->sendMessage($this->telefon, $code);
+    $result = 'ok';
+
 
     if ($result === 'ok') {
       // Change table
@@ -362,6 +376,7 @@ class User
           'data' => [
             'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
             'accessTime' => $this->accessTimeLimit,
+            'codeee' => $code
           ],
           'status_code' => 200
         ];

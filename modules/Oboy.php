@@ -40,10 +40,11 @@ class Oboy
         $data = array();
         foreach ($result as $row) {
             // Convert Image to base64
+            $image = $this->convertImage("rooms/", $row['img']);
             $bgImage = $this->convertImage("rooms/", $row['bgimg']);
             array_push($data, [
                 'id' => $row['id'],
-                'img' => 'http://oboi-api/oboy-images-room/rooms/'.$row['img'],
+                'img' => $image,
                 'bgimg' => $bgImage,
                 'room_category_id' => $row['room_category_id'],
             ]);

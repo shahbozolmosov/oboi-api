@@ -2,6 +2,7 @@
 // headers
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
+header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
@@ -16,14 +17,21 @@ $db = $database->connect();
 
 // Check token
 $requestHeaders = apache_request_headers();
-$Authorization = $database->filter($requestHeaders['Authorization']);
+
+if(!isset($requestHeaders['Authorization'])) {
+    print(json_encode(['error' => ['message' => 'Authorization talab qilinadi!','status_code' => 501]]));
+    exit;
+}
+$Authorization = isset($requestHeaders['Authorization'])?$database->filter($requestHeaders['Authorization']):die(http_response_code(400));
 $checkToken = new CheckToken($db);
 $result = $checkToken->check($Authorization);
+
 if (!$result) {
     http_response_code(400);
     print(json_encode(['message' => 'Bad Requestaa!']));
     exit;
 }
+
 
 //Instantiate user
 $user = new User($db);
@@ -33,13 +41,11 @@ $data = json_decode(file_get_contents("php://input"));
 
 $profile = new Profile($db);
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
-
+    
     // Validation action
-    validation($data, ['action']);
-
-    // validation telefon
-    validation($data, ['telefon']);
+    validation($data, ['action', 'telefon']);
 
     $user->telefon = $database->filterPhoneNumber($data->telefon);
 
@@ -92,10 +98,10 @@ function validation($data, $checkParam)
     foreach ($checkParam as $key => $value) {
         $paramValue = $data->{$value};
         if ($paramValue === null) { // check isset
-            $error[] = '`' . $value . '` talab qilinadi!';
+            $error['error'][] = '`' . $value . '` talab qilinadi!';
         }
         if ($paramValue === '') { // check empty
-            $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
+            $error['error'][] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
         }
     }
 
@@ -105,6 +111,3 @@ function validation($data, $checkParam)
         exit();
     }
 }
-
-http_response_code(400);
-print(json_encode(['message' => 'Bad Request!']));

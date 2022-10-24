@@ -1,9 +1,7 @@
 <?php
 // headers
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=utf8');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
+header("Content-Type: application/json");
 
 require "../../config/Database.php";
 require "../../modules/Oboy.php";
@@ -13,16 +11,6 @@ require "../../modules/CheckToken.php";
 $database = new Database();
 $db = $database->connect();
 
-// Check token
-$requestHeaders = apache_request_headers();
-$Authorization = $database->filter($requestHeaders['Authorization']);
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Request!']));
-    exit();
-}
 
 // Instantiate oboy rooms object
 $oboy = new Oboy($db);
