@@ -68,7 +68,7 @@ class Oboy
         foreach ($result as $row) {
             // Get currency
             $usd = $this->getCurrency('usd', $row['article']);
-            
+            $price = $this->getOboyPrice($row['article']);
             // Convert Image to base64
             $image = $this->convertImage("oboys/", $row['img']);
             array_push($data, [
@@ -128,5 +128,17 @@ class Oboy
         $stmt->bindParam(':article', $article);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC){$type};
+    }
+
+    // Get Oboy Price 
+    private function getOboyPrice($article)
+    {
+        if(!$article) return null;
+        $this->table = 'krimproducts';
+        $query  = 'SELECT * FROM '.$this->table.' WHERE article=:article ORDER BY id DESC';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':article', $article);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['price'];
     }
 }
