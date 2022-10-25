@@ -66,15 +66,20 @@ class Oboy
 
         $data = array();
         foreach ($result as $row) {
+            // Get currency
+            $usd = $this->getCurrency('usd', $row['article']);
+            
             // Convert Image to base64
             $image = $this->convertImage("oboys/", $row['img']);
             array_push($data, [
+                'price' => $usd,
                 'id' => $row['id'],
                 'name' => $row['name'],
                 'img' => $image,
                 'article' => $row['article'],
                 'room_id' => $row['room_id'],
                 'room_category_id' => $row['room_category_id'],
+                
             ]);
         }
 
@@ -96,7 +101,7 @@ class Oboy
     }
 
     // Execute Query
-    private function executeQuery($query = null): ?array
+    private function executeQuery($query = null)
     {
         if (!$query) return null;
         // Prepare statment
@@ -110,5 +115,18 @@ class Oboy
             array_push($data, $row);
         }
         return $data;
+    }
+
+    // Get currency
+    private function getCurrency($type = null, $article = null)
+    {
+        if(!$type || !$article) return null;
+
+        $this->table = 'valyuta';
+        $query = 'SELECT * FROM valyuta';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':article', $article);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC){$type};
     }
 }
