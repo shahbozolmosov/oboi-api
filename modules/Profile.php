@@ -147,28 +147,14 @@ class Profile extends User
     }
 
     $userData = $this->getUserData($this->token);
-
     if ($userData) {
-      $userId = $userData['id'];
-      // Change table
-      $this->table = 'cashbackhistory';
-      // Create query
-      $query = 'SELECT * FROM ' . $this->table . ' WHERE client_id=:userId  ORDER BY id DESC';
-      $stmt = $this->conn->prepare($query);
-      $stmt->bindParam(':userId', $userId);
-      $stmt->execute();
-      $cashData = [];
-      // Fetch data
-      while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $cashData['cashbackHistory'] = $row;
-      }
-
-      if ($cashData['cashbackHistory']) {
-        return [
-          'data' => $cashData,
-          'status_code' => 200
-        ];
-      }
+      $userBalans = $userData['balans'];
+      return [
+        'data' => [
+          'balans' => $userBalans
+        ],
+        'status_code' => 200
+      ];
     }
 
     return [
