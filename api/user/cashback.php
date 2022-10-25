@@ -14,15 +14,17 @@ require_once "../../modules/Profile.php";
 $database = new Database();
 $db = $database->connect();
 
-// Check token
-$requestHeaders = apache_request_headers();
-$Authorization = $database->filter($requestHeaders['Authorization']);
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Requestaa!']));
-    exit;
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    // Check token
+    $requestHeaders = apache_request_headers();
+    $Authorization = $database->filter($requestHeaders['Authorization']);
+    $checkToken = new CheckToken($db);
+    $result = $checkToken->check($Authorization);
+    if (!$result) {
+        http_response_code(400);
+        print(json_encode(['message' => 'Bad Request!']));
+        exit;
+    }
 }
 
 

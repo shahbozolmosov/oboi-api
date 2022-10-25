@@ -18,18 +18,20 @@ $db = $database->connect();
 // Check token
 $requestHeaders = apache_request_headers();
 
-if (!isset($requestHeaders['Authorization'])) {
-    print(json_encode(['error' => ['message' => 'Authorization talab qilinadi!', 'status_code' => 501]]));
-    exit;
-}
-$Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Requestaa!']));
-    exit;
+if($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    if (!isset($requestHeaders['Authorization'])) {
+        print('Bad request');
+        exit;
+    }
+    $Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
+    $checkToken = new CheckToken($db);
+    $result = $checkToken->check($Authorization);
+    
+    if (!$result) {
+        http_response_code(400);
+        print(json_encode(['message' => 'Bad Requestaa!']));
+        exit;
+    }
 }
 
 

@@ -207,7 +207,7 @@ class Profile extends User
 
     return [
       'data' => [
-        'message' => 'Ma\'lumot topilmadi.'
+        'message' => 'Ma\'lumot topilmadi.',
       ],
       'status_code' => 404
     ];

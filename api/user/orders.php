@@ -14,25 +14,27 @@ require_once "../../modules/Profile.php";
 $database = new Database();
 $db = $database->connect();
 
-// Check token
-$requestHeaders = apache_request_headers();
-$Authorization = $database->filter($requestHeaders['Authorization']);
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Requestaa!']));
-    exit;
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    // Check token
+    $requestHeaders = apache_request_headers();
+    $Authorization = $database->filter($requestHeaders['Authorization']);
+    $checkToken = new CheckToken($db);
+    $result = $checkToken->check($Authorization);
+    if (!$result) {
+        http_response_code(400);
+        print(json_encode(['message' => 'Bad Request!']));
+        exit;
+    }
 }
 
 
 $profile = new Profile($db);
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'));
     // Validation
     validation($data, ['token', 'location', 'article', 'count', 'cashback']);
-    
+
     // Filter values
     $profile->token = md5($data->token);
     $profile->location = $database->filter($data->location);
@@ -42,12 +44,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
     //Order
     $result = $profile->createOrder();
-    
+
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
     exit;
-    
-}else if ($_SERVER['REQUEST_METHOD'] === 'GET') {// GET Request
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET Request
     // Check token
     if (isset($_GET['token']) && !empty($_GET['token'])) {
         $profile->token = md5($_GET['token']);
