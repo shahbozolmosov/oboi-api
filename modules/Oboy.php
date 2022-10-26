@@ -69,10 +69,14 @@ class Oboy
             // Get currency
             $usd = $this->getCurrency('usd', $row['article']);
             $price = $this->getOboyPrice($row['article']);
+            $price = ($price*1.37*$usd);
+            // Get Firma
+            $firma = $this->getFirma($row['article']);
             // Convert Image to base64
             $image = $this->convertImage("oboys/", $row['img']);
             array_push($data, [
-                'price' => $usd,
+                'price' => $price,
+                'firma' => $firma,
                 'id' => $row['id'],
                 'name' => $row['name'],
                 'img' => $image,
@@ -140,5 +144,17 @@ class Oboy
         $stmt->bindParam(':article', $article);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC)['price'];
+    }
+
+    // Get Oboy Price 
+    private function getFirma($article)
+    {
+        if(!$article) return null;
+        $this->table = 'products';
+        $query  = 'SELECT * FROM '.$this->table.' WHERE article=:article ORDER BY id DESC';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':article', $article);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['name'];
     }
 }
