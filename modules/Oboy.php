@@ -69,7 +69,7 @@ class Oboy
             // Get currency
             $usd = $this->getCurrency('usd', $row['article']);
             $price = $this->getOboyPrice($row['article']);
-            $price = ($price*1.37*$usd);
+            $price = ($price * 1.37 * $usd);
             // Get Firma
             $firma = $this->getFirma($row['article']);
             // Convert Image to base64
@@ -81,9 +81,9 @@ class Oboy
                 'name' => $row['name'],
                 'img' => $image,
                 'article' => $row['article'],
-                'room_id' => $row['room_id'],
+                'room_id' => $row['rooms_id'],
                 'room_category_id' => $row['room_category_id'],
-                
+
             ]);
         }
 
@@ -124,7 +124,7 @@ class Oboy
     // Get currency
     private function getCurrency($type = null, $article = null)
     {
-        if(!$type || !$article) return null;
+        if (!$type || !$article) return null;
 
         $this->table = 'valyuta';
         $query = 'SELECT * FROM valyuta';
@@ -137,24 +137,28 @@ class Oboy
     // Get Oboy Price 
     private function getOboyPrice($article)
     {
-        if(!$article) return null;
+        if (!$article) return null;
         $this->table = 'krimproducts';
-        $query  = 'SELECT * FROM '.$this->table.' WHERE article=:article ORDER BY id DESC';
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE article=:article ORDER BY id DESC';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':article', $article);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['price'];
+        $resutl = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($resutl) return $resutl;
+        return 0;
     }
 
     // Get Oboy Price 
     private function getFirma($article)
     {
-        if(!$article) return null;
+        if (!$article) return null;
         $this->table = 'products';
-        $query  = 'SELECT * FROM '.$this->table.' WHERE article=:article ORDER BY id DESC';
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE article=:article ORDER BY id DESC';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':article', $article);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['name'];
+        $resutl = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($resutl) return $resutl;
+        return 0;
     }
 }

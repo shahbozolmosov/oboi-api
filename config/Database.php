@@ -4,8 +4,8 @@ class Database
     // DB Params
     private $host = 'localhost';
     private $db_name = 'oboiapi';
-    private $username = 'mysql';
-    private $password = 'mysql';
+    private $username = 'root';
+    private $password = '';
 
     // DB Connect
     public function connect()
