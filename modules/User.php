@@ -55,7 +55,7 @@ class User
 
     return [
       'data' => [
-        'error' => 'Xatolik! Ichki xatolik! Qaytadan urinib ko\'ring.',
+        'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring.',
       ],
       'status_code' => 500
     ];
@@ -171,7 +171,7 @@ class User
     if (!$stmt->execute()) {
       return [
         'data' => [
-          'error' => 'Xatolik! Ichki xatolik qaytadan urinib ko\'ring',
+          'message' => 'Ichki xatolik! Qaytadan urinib ko\'ring'
         ],
         'status_code' => 500
       ];
