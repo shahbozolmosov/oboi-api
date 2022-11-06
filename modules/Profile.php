@@ -29,6 +29,7 @@ class Profile extends User
       $userPhone = $userData['telefon'];
 
       $this->table = 'order_clients';
+      $time = time();
 
       $query = 'INSERT INTO ' . $this->table . ' SET article=:article, client_id=:userId, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
       $stmt = $this->conn->prepare($query);
@@ -37,7 +38,7 @@ class Profile extends User
       $stmt->bindParam(':phone', $userPhone);
       $stmt->bindParam(':count', $this->count);
       $stmt->bindParam(':location', $this->location);
-      $stmt->bindParam(':date', time());
+      $stmt->bindParam(':date', $time);
       $stmt->bindParam(':cashback', $this->cashback);
 
       if (!$stmt->execute()) {

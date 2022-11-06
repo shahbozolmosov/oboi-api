@@ -15,71 +15,72 @@ $database = new Database();
 $db = $database->connect();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    // Check token
-    $requestHeaders = apache_request_headers();
-    $Authorization = $database->filter($requestHeaders['Authorization']);
-    $checkToken = new CheckToken($db);
-    $result = $checkToken->check($Authorization);
-    if (!$result) {
-        http_response_code(400);
-        print(json_encode(['message' => 'Bad Request!']));
-        exit;
-    }
+  // Check token
+  $requestHeaders = apache_request_headers();
+  $Authorization = $database->filter($requestHeaders['Authorization']);
+  $checkToken = new CheckToken($db);
+  $result = $checkToken->check($Authorization);
+  if (!$result) {
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad Request!']));
+    exit;
+  }
 }
 
 
 $profile = new Profile($db);
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'));
-    // Validation
-    validation($data, ['token', 'location', 'article', 'count', 'cashback']);
+  $data = json_decode(file_get_contents('php://input'));
 
-    // Filter values
-    $profile->token = md5($data->token);
-    $profile->location = $database->filter($data->location);
-    $profile->article = $database->filter($data->article);
-    $profile->count = $database->filter($data->count);
-    $profile->cashback = $database->filter($data->cashback);
+  // Validation
+  validation($data, ['token', 'location', 'article', 'count', 'cashback']);
 
-    //Order
-    $result = $profile->createOrder();
+  // Filter values
+  $profile->token = md5($data->token);
+  $profile->location = $database->filter($data->location);
+  $profile->article = $database->filter($data->article);
+  $profile->count = $database->filter($data->count);
+  $profile->cashback = $database->filter($data->cashback);
 
+  //Order
+  $result = $profile->createOrder();
+
+  http_response_code($result['status_code']);
+  print(json_encode($result['data']));
+  exit;
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET Request
+  // Check token
+  if (isset($_GET['token']) && !empty($_GET['token'])) {
+    $profile->token = md5($_GET['token']);
+
+    $result = $profile->readOrders();
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
     exit;
-} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET Request
-    // Check token
-    if (isset($_GET['token']) && !empty($_GET['token'])) {
-        $profile->token = md5($_GET['token']);
-
-        $result = $profile->readOrders();
-        http_response_code($result['status_code']);
-        print(json_encode($result['data']));
-        exit;
-    }
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad request!']));
-    exit;
+  }
+  http_response_code(400);
+  print(json_encode(['message' => 'Bad request!']));
+  exit;
 }
 
 // VALIDATION
 function validation($data, $checkParam)
 {
-    $error = [];
-    foreach ($checkParam as $key => $value) {
-        $paramValue = $data->{$value};
-        if ($paramValue === null) { // check isset
-            $error[] = '`' . $value . '` talab qilinadi!';
-        }
-        if ($paramValue === '') { // check empty
-            $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
-        }
+  $error = [];
+  foreach ($checkParam as $key => $value) {
+    if (isset($data->{$value})) { // check isset
+      $paramValue = $data->{$value};
+      if ($paramValue === '') { // check empty
+        $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
+      }
+    } else {
+      $error[] = '`' . $value . '` talab qilinadi!';
     }
+  }
 
-    if ($error) {
-        http_response_code(400);
-        print(json_encode($error));
-        exit();
-    }
+  if ($error) {
+    http_response_code(400);
+    print(json_encode($error));
+    exit();
+  }
 }
