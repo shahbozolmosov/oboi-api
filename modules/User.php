@@ -88,12 +88,12 @@ class User
 
       // Get user data from actions 
       $userActionData = $this->getUserActionData();
-      $action = $userActionData['urinish']+1;
+      $action = $userActionData['urinish'] + 1;
       $actionUserId = $userActionData['id'];
       $actionTime = $userActionData['last'];
 
       // Check access time limit
-      if(time() - $actionTime > $this->accessTimeLimit){
+      if (time() - $actionTime > $this->accessTimeLimit) {
         return [
           'data' => [
             'message' => 'Tasdiqlash vaqti tugadi!'
@@ -162,11 +162,12 @@ class User
   // setUserLastAvtive
   private function setUserLastActive($token)
   {
+    $time = time();
     $token = md5($token);
     $this->table = 'clients';
     $query = 'UPDATE ' . $this->table . ' SET last=:last WHERE token=:token';
     $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':last', time());
+    $stmt->bindParam(':last', $time);
     $stmt->bindParam(':token', $token);
     if (!$stmt->execute()) {
       return [
@@ -277,10 +278,10 @@ class User
 
     // Prepare statment
     $stmt = $this->conn->prepare($query);
-
+    $time = time();
     // Bind data
     $stmt->bindParam(':actions', $actions);
-    $stmt->bindParam(':last', time());
+    $stmt->bindParam(':last', $time);
     $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
 
     // Execute query
@@ -319,11 +320,11 @@ class User
       // Execute query with check
       if ($stmt->execute()) {
         $this->table = 'actions';
-
+        $time = time();
         $action = 1;
         $query = 'INSERT INTO  ' . $this->table . ' SET last=:last, urinish=:action, telefon=:telefon';
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':last', time());
+        $stmt->bindParam(':last', $time);
         $stmt->bindParam(':action', $action);
         $stmt->bindParam(':telefon', $this->telefon);
 
@@ -351,7 +352,7 @@ class User
 
     // Send message
     $result = $this->sendMessage($this->telefon, $code);
-    
+
     if ($result === 'ok') {
       // Change table
       $this->table = 'clients';
@@ -434,6 +435,7 @@ class User
   {
     return rand(10000, 99999);
   }
+
   // Generate token
   private function generateToken()
   {
