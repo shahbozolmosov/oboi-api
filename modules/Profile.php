@@ -52,7 +52,7 @@ class Profile extends User
       }
       return [
         'data' => [
-          'message' => 'Buyurtma qabul qilindi!'
+          'message' => 'Buyurtma qabul qilindi! Xodimlarimiz siz bilan bog\'lanishadi!'
         ],
         'status_code' => 200
       ];
