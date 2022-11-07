@@ -14,7 +14,7 @@ require_once "../../modules/Profile.php";
 $database = new Database();
 $db = $database->connect();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {// CHECK API KEY
   // Check token
   $requestHeaders = apache_request_headers();
   $Authorization = $database->filter($requestHeaders['Authorization']);
