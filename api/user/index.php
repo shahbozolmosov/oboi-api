@@ -47,11 +47,14 @@ $profile = new Profile($db);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
 
   // Validation action
-  validation($data, ['action', 'telefon']);
+  validation($data, ['action']);
 
   $user->telefon = $database->filterPhoneNumber($data->telefon);
 
   if ($data->action === 'register') {
+    // Validation telefon
+    validation($data, ['telefon']);
+
     $result = $user->register();
 
     http_response_code($result['status_code']);
@@ -59,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
     exit;
   } else if ($data->action === 'verification') {
     // validation telefon with verification code
-    validation($data, ['code']);
+    validation($data, ['code', 'telefon']);
     $user->code = $database->filter($data->code);
 
     $result = $user->verification();
@@ -67,6 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
 
+    exit();
+  }else if($data->action === 'accessCode') {
+    // Validation telefon
+    validation($data, ['token']);
+    echo "checkCode";
     exit();
   }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET
