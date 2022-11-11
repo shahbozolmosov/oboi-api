@@ -144,7 +144,7 @@ class User
       'status_code' => '404'
     ];
   }
-
+  
   // Get UserData
   protected function getUserData($token = 'null')
   {
@@ -181,7 +181,7 @@ class User
   }
 
   // Check user actions
-  private function checkUserActions($count = null)
+  protected function checkUserActions($count = null)
   {
     if (!$count || $count < !$this->maxLimitAction) return null;
     //Change table
@@ -239,7 +239,7 @@ class User
   }
 
   // Send message to user phone
-  private function sendMessage($telefon, $code)
+  protected function sendMessage($telefon, $code)
   {
     $curl = curl_init();
 
@@ -270,7 +270,7 @@ class User
   }
 
   // Update user actions
-  private function updateUserAction($actions, $userId)
+  protected function updateUserAction($actions, $userId)
   {
     $this->table = 'actions';
     // Create query
@@ -346,7 +346,7 @@ class User
   }
 
   // Update user code
-  private function updateUserCode($userId)
+  protected function updateUserCode($userId)
   {
     $code = $this->generateCode();
 
@@ -417,7 +417,7 @@ class User
   }
 
   // Get user action data
-  private function getUserActionData()
+  protected function getUserActionData()
   {
     // change table
     $this->table = 'actions';
@@ -431,7 +431,7 @@ class User
   }
 
   // Generate message code
-  private function generateCode()
+  protected function generateCode()
   {
     return rand(10000, 99999);
   }

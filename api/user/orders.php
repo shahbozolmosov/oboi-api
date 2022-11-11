@@ -33,10 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $data = json_decode(file_get_contents('php://input'));
 
   // Validation
-  validation($data, ['token', 'location', 'article', 'count', 'cashback']);
+  validation($data, ['telefon', 'location', 'article', 'count', 'cashback']);
 
   // Filter values
-  $profile->token = md5($data->token);
+  $profile->telefon = $database->filterPhoneNumber($data->telefon);
   $profile->location = $database->filter($data->location);
   $profile->article = $database->filter($data->article);
   $profile->count = $database->filter($data->count);

@@ -74,8 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
   }else if($data->action === 'accessCode') {
     // Validation telefon
     validation($data, ['token']);
-    echo "checkCode";
-    exit();
+    $profile->token = md5($data->token);
+    $result = $profile->accessCode();
+    http_response_code($result['status_code']);
+    print(json_encode($result['data']));
+    exit;
   }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET
   // check token
@@ -91,22 +94,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
   print(json_encode(['message' => 'Bad request!']));
   exit;
 } else if ($_SERVER['REQUEST_METHOD'] === 'PUT') { // PUT
+  // validation telefon with verification code
+  validation($data, ['token', 'fio', 'telefon']);
   // check token
-  if (isset($_GET['token']) && !empty($_GET['token'])) {
-    // validation token, fio, telefon
-    validation($data, ['telefon', 'fio']);
+  // validation token, fio, telefon
+  validation($data, ['telefon', 'fio']);
 
-    $profile->token = md5($_GET['token']);
-    $profile->telefon = $database->filter($data->telefon);
-    $profile->fio = $database->filter($data->fio);
+  $profile->token = md5($_GET['token']);
+  $profile->telefon = $database->filter($data->telefon);
+  $profile->fio = $database->filter($data->fio);
 
-    $result = $profile->updateUserData();
-    http_response_code($result['status_code']);
-    print(json_encode($result['data']));
-    exit;
-  }
-  http_response_code(400);
-  print(json_encode(['message' => 'Bad request!']));
+  $result = $profile->updateUserData();
+  http_response_code($result['status_code']);
+  print(json_encode($result['data']));
   exit;
 }
 
