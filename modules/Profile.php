@@ -23,49 +23,36 @@ class Profile extends User
             ];
         }
 
-        $userData = $this->getUserData($this->token);
+        $this->table = 'order_clients';
+        $time = time();
 
-        if ($userData) {
-            $userId = $userData['id'];
-            $userPhone = $userData['telefon'];
+        $query = 'INSERT INTO ' . $this->table . ' SET article=:article, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':article', $this->article);
+        $stmt->bindParam(':phone', $this->telefon);
+        $stmt->bindParam(':count', $this->count);
+        $stmt->bindParam(':location', $this->location);
+        $stmt->bindParam(':date', $time);
+        $stmt->bindParam(':cashback', $this->cashback);
 
-            $this->table = 'order_clients';
-            $time = time();
-
-            $query = 'INSERT INTO ' . $this->table . ' SET article=:article, client_id=:userId, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':article', $this->article);
-            $stmt->bindParam(':userId', $userId);
-            $stmt->bindParam(':phone', $userPhone);
-            $stmt->bindParam(':count', $this->count);
-            $stmt->bindParam(':location', $this->location);
-            $stmt->bindParam(':date', $time);
-            $stmt->bindParam(':cashback', $this->cashback);
-
-            if (!$stmt->execute()) {
-                return [
-                    'data' => [
-                        'message' => 'Ichki xatolik!'
-                    ],
-                    'status_code' => 500
-                ];
-                exit;
-            }
+        if (!$stmt->execute()) {
             return [
                 'data' => [
-                    'message' => 'Buyurtma qabul qilindi! Xodimlarimiz siz bilan bog\'lanishadi!'
+                    'message' => 'Ichki xatolik!'
                 ],
-                'status_code' => 200
+                'status_code' => 500
             ];
             exit;
         }
-
+        $num = $this->telefon;
+        $num = '********'.($num[strlen($num) - 3] . $num[strlen($num) - 2] . $num[strlen($num) - 1]);
         return [
             'data' => [
-                'message' => 'Bad request.'
+                'message' => 'Buyurtma qabul qilindi! Siz bilan '.$num.' raqamingiz orqali bog\'lanamiz!'
             ],
-            'status_code' => 400
+            'status_code' => 200
         ];
+        exit;
     }
 
     // Read orders

@@ -14,18 +14,25 @@ require_once "../../modules/Profile.php";
 $database = new Database();
 $db = $database->connect();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {// CHECK API KEY
-  // Check token
-  $requestHeaders = apache_request_headers();
-  $Authorization = $database->filter($requestHeaders['Authorization']);
+// Check token
+$requestHeaders = apache_request_headers();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+  if (!isset($requestHeaders['Authorization'])) {
+    print('Bad request');
+    exit;
+  }
+  $Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
   $checkToken = new CheckToken($db);
   $result = $checkToken->check($Authorization);
+
   if (!$result) {
     http_response_code(400);
-    print(json_encode(['message' => 'Bad Request!']));
+    print(json_encode(['message' => 'Bad Requestaa!']));
     exit;
   }
 }
+
 
 
 $profile = new Profile($db);
