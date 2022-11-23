@@ -22,7 +22,8 @@ class Oboy
     $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC ';
 
     // Execute query
-    $result = $this->executeQuery($query);
+    $result['categories'] = $this->executeQuery($query);
+
     return json_encode($result);
   }
 
