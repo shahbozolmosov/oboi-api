@@ -11,6 +11,23 @@ require "../../modules/CheckToken.php";
 $database = new Database();
 $db = $database->connect();
 
+$requestHeaders = apache_request_headers();
+
+if (!isset($requestHeaders['Authorization'])) {
+    http_send_status(400);
+    print('Bad request');
+    exit;
+}
+$Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
+$checkToken = new CheckToken($db);
+$result = $checkToken->check($Authorization);
+
+if (!$result) {
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad Request!']));
+    exit;
+}
+
 
 // Instantiate oboy rooms object
 $oboy = new Oboy($db);
