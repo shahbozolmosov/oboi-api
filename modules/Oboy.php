@@ -43,7 +43,7 @@ class Oboy
             // Convert Image to base64
             $image = $this->convertImage("rooms/", $row['img']);
             $bgImage = $this->convertImage("rooms/", $row['bgimg']);
-            $data['rooms'] = [
+            $data['rooms'][] = [
                 'id' => $row['id'],
                 'img' => $image,
                 'bgimg' => $bgImage,
@@ -76,7 +76,7 @@ class Oboy
             $firma = $this->getFirma($row['article']);
             // Convert Image to base64
             $image = $this->convertImage("oboys/", $row['img']);
-            $data['oboys'] = [
+            $data['oboys'][] = [
                 'price' => $price,
                 'firma' => $firma,
                 'id' => $row['id'],
