@@ -17,7 +17,6 @@ $db = $database->connect();
 // Check token
 $requestHeaders = apache_request_headers();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
   if (!isset($requestHeaders['Authorization'])) {
     print('Bad request');
     exit;
@@ -31,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     print(json_encode(['message' => 'Bad Requestaa!']));
     exit;
   }
-}
 
 
 

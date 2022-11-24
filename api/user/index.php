@@ -17,24 +17,20 @@ $db = $database->connect();
 // Check token
 $requestHeaders = apache_request_headers();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-
-    if (!isset($requestHeaders['Authorization'])) {
-        http_send_status(400);
-        print('Bad request');
-        exit;
-    }
-    $Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
-    $checkToken = new CheckToken($db);
-    $result = $checkToken->check($Authorization);
-
-    if (!$result) {
-        http_response_code(400);
-        print(json_encode(['message' => 'Bad Requestaa!']));
-        exit;
-    }
+if (!isset($requestHeaders['Authorization'])) {
+    http_send_status(400);
+    print('Bad request');
+    exit;
 }
+$Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
+$checkToken = new CheckToken($db);
+$result = $checkToken->check($Authorization);
 
+if (!$result) {
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad Requestaa!']));
+    exit;
+}
 
 //Instantiate user
 $user = new User($db);
@@ -52,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
 
     $user->telefon = $database->filterPhoneNumber($data->telefon);
 
-    if ($data->action === 'register') {
+    if ($data->action === 'register') {// REGISTER
         // Validation telefon
         validation($data, ['telefon']);
 
@@ -61,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
         http_response_code($result['status_code']);
         print(json_encode($result['data']));
         exit;
-    } else if ($data->action === 'verification') {
+    } else if ($data->action === 'verification') { // VERIFICATION
         // validation telefon with verification code
         validation($data, ['code', 'telefon']);
         $user->code = $database->filter($data->code);
@@ -72,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
         print(json_encode($result['data']));
 
         exit();
-    } else if ($data->action === 'accessCode') {
+    } else if ($data->action === 'accessCode') { // ACCESS CODE
         // Validation telefon
         validation($data, ['token']);
         $profile->token = md5($data->token);

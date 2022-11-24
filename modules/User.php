@@ -351,8 +351,8 @@ class User
     $code = $this->generateCode();
 
     // Send message
-    $result = $this->sendMessage($this->telefon, $code);
-
+//    $result = $this->sendMessage($this->telefon, $code);
+    $result = 'ok';
     if ($result === 'ok') {
       // Change table
       $this->table = 'clients';
@@ -384,8 +384,9 @@ class User
         // return success message
         return [
           'data' => [
-            'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
-            'accessTime' => $this->accessTimeLimit,
+              'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
+              'accessTime' => $this->accessTimeLimit,
+              'code' => $code
           ],
           'status_code' => 200
         ];
