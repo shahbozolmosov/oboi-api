@@ -13,7 +13,7 @@ class User
     private $messageUrl = 'http://91.204.239.44/broker-api/send';
 
     // DB Stuff
-    private $table = 'clients';
+    protected $table = 'clients';
 
     protected $conn;
 

@@ -167,7 +167,6 @@ class Profile extends User
         }
 
         $userData = $this->getUserData($this->token);
-
         if ($userData) {
             $resData = [
                 'fio' => $userData['fio'],
