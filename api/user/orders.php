@@ -17,75 +17,74 @@ $db = $database->connect();
 // Check token
 $requestHeaders = apache_request_headers();
 
-  if (!isset($requestHeaders['Authorization'])) {
-    print('Bad request');
+if (!isset($requestHeaders['Authorization'])) {
+    print('Bad request!');
     exit;
-  }
-  $Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
-  $checkToken = new CheckToken($db);
-  $result = $checkToken->check($Authorization);
+}
+$Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
+$checkToken = new CheckToken($db);
+$result = $checkToken->check($Authorization);
 
-  if (!$result) {
+if (!$result) {
     http_response_code(400);
-    print(json_encode(['message' => 'Bad Requestaa!']));
+    print(json_encode(['message' => 'Bad Request!']));
     exit;
-  }
-
+}
 
 
 $profile = new Profile($db);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $data = json_decode(file_get_contents('php://input'));
+    $data = json_decode(file_get_contents('php://input'));
 
-  // Validation
-  validation($data, ['telefon', 'location', 'article', 'count', 'cashback']);
+    // Validation
+    validation($data, ['telefon', 'location', 'article', 'count', 'cashback']);
 
-  // Filter values
-  $profile->telefon = $database->filterPhoneNumber($data->telefon);
-  $profile->location = $database->filter($data->location);
-  $profile->article = $database->filter($data->article);
-  $profile->count = $database->filter($data->count);
-  $profile->cashback = $database->filter($data->cashback);
+    // Filter values
+    $profile->telefon = $database->filterPhoneNumber($data->telefon);
+    $profile->location = $database->filter($data->location);
+    $profile->article = $database->filter($data->article);
+    $profile->count = $database->filter($data->count);
+    $profile->cashback = $database->filter($data->cashback);
 
-  //Order
-  $result = $profile->createOrder();
+    //Order
+    $result = $profile->createOrder();
 
-  http_response_code($result['status_code']);
-  print(json_encode($result['data']));
-  exit;
-} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET Request
-  // Check token
-  if (isset($_GET['token']) && !empty($_GET['token'])) {
-    $profile->token = md5($_GET['token']);
-
-    $result = $profile->readOrders();
     http_response_code($result['status_code']);
     print(json_encode($result['data']));
     exit;
-  }
-  http_response_code(400);
-  print(json_encode(['message' => 'Bad request!']));
-  exit;
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') { // GET Request
+    // Check token
+    if (isset($_GET['token']) && !empty($_GET['token'])) {
+        $profile->token = md5($_GET['token']);
+
+        $result = $profile->readOrders();
+        http_response_code($result['status_code']);
+        print(json_encode($result['data']));
+        exit;
+    }
+    http_response_code(400);
+    print(json_encode(['message' => 'Bad request!']));
+    exit;
 }
 
 // VALIDATION
 function validation($data, $checkParam)
 {
-  $error = [];
-  foreach ($checkParam as $key => $value) {
-    if (isset($data->{$value})) { // check isset
-      $paramValue = $data->{$value};
-      if ($paramValue === '') { // check empty
-        $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
-      }
-    } else {
-      $error[] = '`' . $value . '` talab qilinadi!';
+    $error = [];
+    foreach ($checkParam as $key => $value) {
+        if (isset($data->{$value})) { // check isset
+            $paramValue = $data->{$value};
+            if ($paramValue === '') { // check empty
+                $error[] = '`' . $value . '` bo\'sh qator bo\'lmasin!';
+            }
+        } else {
+            $error[] = '`' . $value . '` talab qilinadi!';
+        }
     }
-  }
 
-  if ($error) {
-    http_response_code(400);
-    print(json_encode($error));
-    exit();
-  }
+    if ($error) {
+        http_response_code(400);
+        print(json_encode($error));
+        exit();
+    }
 }
