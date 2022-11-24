@@ -19,7 +19,7 @@ $requestHeaders = apache_request_headers();
 
 if (!isset($requestHeaders['Authorization'])) {
     http_send_status(400);
-    print('Bad request');
+    print('Bad request!');
     exit;
 }
 $Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
@@ -28,7 +28,7 @@ $result = $checkToken->check($Authorization);
 
 if (!$result) {
     http_response_code(400);
-    print(json_encode(['message' => 'Bad Requestaa!']));
+    print(json_encode(['message' => 'Bad Request!']));
     exit;
 }
 
@@ -91,15 +91,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
     print(json_encode(['message' => 'Bad request!']));
     exit;
 } else if ($_SERVER['REQUEST_METHOD'] === 'PUT') { // PUT
+    if (!isset($_GET['token']) || empty($_GET['token'])) {
+        http_response_code(400);
+        print('Bad request!');
+        exit();
+    }
     // validation telefon with verification code
-    validation($data, ['token', 'fio', 'telefon']);
+    validation($data, ['fio', 'telefon', 'code']);
     // check token
-    // validation token, fio, telefon
-    validation($data, ['telefon', 'fio']);
 
     $profile->token = md5($_GET['token']);
     $profile->telefon = $database->filter($data->telefon);
     $profile->fio = $database->filter($data->fio);
+    $profile->code = $database->filter($data->code);
 
     $result = $profile->updateUserData();
     http_response_code($result['status_code']);

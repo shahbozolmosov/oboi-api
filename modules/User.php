@@ -6,7 +6,7 @@ class User
     public $telefon;
     public $code;
 
-    private $accessTimeLimit = 120; // seconds -> 2 min
+    protected $accessTimeLimit = 120; // seconds -> 2 min
     private $waitTimeLimit = 30; // seconds -> 0.5 min
     private $waitMaxTimeLimit = 72000; // seconds -> 20 hour
     private $maxLimitAction = 10;
@@ -420,15 +420,17 @@ class User
     }
 
     // Get user action data
-    protected function getUserActionData()
+    protected function getUserActionData($telefon = null)
     {
+        if(!$telefon)
+            $telefon = $this->telefon;
         // change table
         $this->table = 'actions';
 
         $query = 'SELECT * FROM ' . $this->table . ' WHERE telefon=:telefon';
 
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':telefon', $this->telefon);
+        $stmt->bindParam(':telefon', $telefon);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

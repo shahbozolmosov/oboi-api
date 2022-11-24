@@ -45,10 +45,10 @@ class Profile extends User
             exit;
         }
         $num = $this->telefon;
-        $num = '********'.($num[strlen($num) - 3] . $num[strlen($num) - 2] . $num[strlen($num) - 1]);
+        $num = '********' . ($num[strlen($num) - 3] . $num[strlen($num) - 2] . $num[strlen($num) - 1]);
         return [
             'data' => [
-                'message' => 'Buyurtma qabul qilindi! Siz bilan '.$num.' raqamingiz orqali bog\'lanamiz!'
+                'message' => 'Buyurtma qabul qilindi! Siz bilan ' . $num . ' raqamingiz orqali bog\'lanamiz!'
             ],
             'status_code' => 200
         ];
@@ -199,18 +199,58 @@ class Profile extends User
             ];
         }
 
+        // Check User Actions
+        $checkResult = $this->checkUserActions(6);
+        if ($checkResult !== 'ok') return $checkResult;
+
         $userData = $this->getUserData($this->token);
 
         if ($userData) {
-            $result = $this->updateUserDataQuery();
+            // Get user data
+            $userId = $userData['id'];
+            $telefon = $userData['telefon'];
+            $code = $userData['code'];
 
+            // Get user data from actions
+            $userActionData = $this->getUserActionData($telefon);
+            $action = $userActionData['urinish'] + 1;
+            $actionUserId = $userActionData['id'];
+            $actionTime = $userActionData['last'];
+
+            // Check access time limit
+            if (time() - $actionTime > $this->accessTimeLimit) {
+                return [
+                    'data' => [
+                        'message' => 'Tasdiqlash vaqti tugadi!'
+                    ],
+                    'status_code' => 400
+                ];
+            }
+            //Update user action
+            $result = $this->updateUserAction($action, $actionUserId);
             if ($result !== 'ok') return $result;
+            if ($this->code === $code) {
+                $this->updateUserCode($userId);
+
+                $result = $this->updateUserDataQuery();
+                if($result != 'ok') return $result;
+
+                //Update user action
+                $result = $this->updateUserAction(0, $actionUserId);
+                if ($result !== 'ok') return $result;
+                return [
+                    'data' => [
+                        'telefon' => $userData['telefon'],
+                        'fio' => $this->fio,
+                    ],
+                    'status_code' => 200
+                ];
+            }
             return [
                 'data' => [
-                    'telefon' => $userData['telefon'],
-                    'fio' => $this->fio,
+                    'message' => 'Xatolik! Kod noto\'g\'ri.',
                 ],
-                'status_code' => 200
+                'status_code' => '400'
             ];
         }
 
