@@ -383,13 +383,14 @@ class User
                 $resTel = $this->telefon;
                 $resTel = '********' . ($resTel[strlen($resTel) - 2] . $resTel[strlen($resTel) - 1]);
 
+                $userData['userData'] = [
+                    'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
+                    'accessTime' => $this->accessTimeLimit,
+                    'code' => $code
+                ];
                 // return success message
                 return [
-                    'data' => [
-                        'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
-                        'accessTime' => $this->accessTimeLimit,
-                        'code' => $code
-                    ],
+                    'data' => $userData,
                     'status_code' => 200
                 ];
             }
@@ -422,7 +423,7 @@ class User
     // Get user action data
     protected function getUserActionData($telefon = null)
     {
-        if(!$telefon)
+        if (!$telefon)
             $telefon = $this->telefon;
         // change table
         $this->table = 'actions';

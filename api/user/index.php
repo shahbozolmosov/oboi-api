@@ -18,7 +18,7 @@ $db = $database->connect();
 $requestHeaders = apache_request_headers();
 
 if (!isset($requestHeaders['Authorization'])) {
-    http_send_status(400);
+//    http_response_code(400);
     print('Bad request!');
     exit;
 }
