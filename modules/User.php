@@ -107,7 +107,7 @@ class User
             if ($result !== 'ok') return $result;
 
             if ($code === $this->code) {
-                $this->updateUserCode($userId);
+                $this->updateUserCode($userId, true);
 
                 // Generate token
                 $token = $this->generateToken();
@@ -198,8 +198,7 @@ class User
         $lastActionTime = $userActionData['last'];
         $userId = $userActionData['id'];
 
-
-        if ($lastAction > $count) {
+        if ($lastAction > $count && $userActionData) {
             $time = time() - $lastActionTime;
             // Check user wait time
             if ($lastAction > $count && $lastAction <= ($count + 3)) {
@@ -348,13 +347,16 @@ class User
     }
 
     // Update user code
-    protected function updateUserCode($userId)
+    protected function updateUserCode($userId, $clear = null)
     {
         $code = $this->generateCode();
 
-        // Send message
-//    $result = $this->sendMessage($this->telefon, $code);
-        $result = 'ok';
+        if (!$clear) {
+            // Send message
+            $result = $this->sendMessage($this->telefon, $code);
+        }else {
+            $result ='ok';
+        }
         if ($result === 'ok') {
             // Change table
             $this->table = 'clients';
@@ -386,7 +388,6 @@ class User
                 $userData['userData'] = [
                     'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
                     'accessTime' => $this->accessTimeLimit,
-                    'code' => $code
                 ];
                 // return success message
                 return [

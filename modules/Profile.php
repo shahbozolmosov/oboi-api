@@ -23,36 +23,47 @@ class Profile extends User
             ];
         }
 
-        $this->table = 'order_clients';
-        $time = time();
+        $userData = $this->getUserData($this->token);
+        if($userData) {
+            $userId = $userData['id'];
 
-        $query = 'INSERT INTO ' . $this->table . ' SET article=:article, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':article', $this->article);
-        $stmt->bindParam(':phone', $this->telefon);
-        $stmt->bindParam(':count', $this->count);
-        $stmt->bindParam(':location', $this->location);
-        $stmt->bindParam(':date', $time);
-        $stmt->bindParam(':cashback', $this->cashback);
+            $this->table = 'order_clients';
+            $time = time();
+            $query = 'INSERT INTO ' . $this->table . ' SET article=:article, client_id=:client_id, phone=:phone, soni=:count, manzil=:location, sana=:date, status="", cashback=:cashback';
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':article', $this->article);
+            $stmt->bindParam(':client_id', $userId);
+            $stmt->bindParam(':phone', $this->telefon);
+            $stmt->bindParam(':count', $this->count);
+            $stmt->bindParam(':location', $this->location);
+            $stmt->bindParam(':date', $time);
+            $stmt->bindParam(':cashback', $this->cashback);
 
-        if (!$stmt->execute()) {
+            if (!$stmt->execute()) {
+                return [
+                    'data' => [
+                        'message' => 'Ichki xatolik!'
+                    ],
+                    'status_code' => 500
+                ];
+                exit;
+            }
+            $num = $this->telefon;
+            $num = '********' . ($num[strlen($num) - 3] . $num[strlen($num) - 2] . $num[strlen($num) - 1]);
             return [
                 'data' => [
-                    'message' => 'Ichki xatolik!'
+                    'message' => 'Buyurtma qabul qilindi! Siz bilan ' . $num . ' raqamingiz orqali bog\'lanamiz!'
                 ],
-                'status_code' => 500
+                'status_code' => 200
             ];
             exit;
         }
-        $num = $this->telefon;
-        $num = '********' . ($num[strlen($num) - 3] . $num[strlen($num) - 2] . $num[strlen($num) - 1]);
         return [
             'data' => [
-                'message' => 'Buyurtma qabul qilindi! Siz bilan ' . $num . ' raqamingiz orqali bog\'lanamiz!'
+                'message' => 'Bu foydalanuvchi mavjud emas!',
             ],
-            'status_code' => 200
+            'status_code' => 404
         ];
-        exit;
     }
 
     // Read orders
@@ -230,7 +241,7 @@ class Profile extends User
             $result = $this->updateUserAction($action, $actionUserId);
             if ($result !== 'ok') return $result;
             if ($this->code === $code) {
-                $this->updateUserCode($userId);
+                $this->updateUserCode($userId, true);
 
                 $result = $this->updateUserDataQuery();
                 if($result != 'ok') return $result;
@@ -274,15 +285,16 @@ class Profile extends User
                 'status_code' => 500,
             ];
         }
-        // Check User Action
-        $result = $this->checkUserActions(3);
-        if ($result !== 'ok') return $result;
-
+        
         $userData = $this->getUserData($this->token);
         if ($userData) {
-
+            
             $userId = $userData['id'];
             $this->telefon = $userData['telefon'];
+            
+            // Check User Action
+            $result = $this->checkUserActions(3);
+            if ($result !== 'ok') return $result;
 
             // Get user data from actions
             $userActionData = $this->getUserActionData();
