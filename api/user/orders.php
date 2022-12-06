@@ -1,39 +1,21 @@
 <?php
 // headers
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header("Content-Type: application/json");
+header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
 require_once "../../config/Database.php";
 require_once "../../modules/User.php";
-require_once "../../modules/CheckToken.php";
 require_once "../../modules/Profile.php";
 
 // Instantiate DB & connect
 $database = new Database();
 $db = $database->connect();
 
-// Check token
-$requestHeaders = apache_request_headers();
-
-if (!isset($requestHeaders['Authorization'])) {
-    print('Bad request!');
-    exit;
-}
-$Authorization = isset($requestHeaders['Authorization']) ? $database->filter($requestHeaders['Authorization']) : die(http_response_code(400));
-$checkToken = new CheckToken($db);
-$result = $checkToken->check($Authorization);
-
-if (!$result) {
-    http_response_code(400);
-    print(json_encode(['message' => 'Bad Request!']));
-    exit;
-}
-
 
 $profile = new Profile($db);
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { // POST Request
     $data = json_decode(file_get_contents('php://input'));
 
     // Validation

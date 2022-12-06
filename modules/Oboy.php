@@ -16,10 +16,15 @@ class Oboy
     }
 
     // Read Category
-    public function readCategories()
+    public function readCategories($limit=null, $page=null)
     {
         // Create query
-        $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC ';
+        $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC';
+        if($limit || $page) {
+        echo $limit . '  '.$page;
+            $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC LIMIT '. $limit . ' OFFSET ' . ($page-1)*$limit;
+//            $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC LIMIT '. 1 . ' OFFSET ' . 2;
+        }
 
         // Execute query
         $result['categories'] = $this->executeQuery($query);
