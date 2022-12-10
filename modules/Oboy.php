@@ -16,34 +16,58 @@ class Oboy
     }
 
     // Read Category
-    public function readCategories($limit=null, $page=null)
+    public function readCategories($limit = null, $page = null)
     {
+        $this->table = 'rooms_category';
+        
         // Create query
         $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC';
-        if($limit || $page) {
-        echo $limit . '  '.$page;
-            $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC LIMIT '. $limit . ' OFFSET ' . ($page-1)*$limit;
-//            $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC LIMIT '. 1 . ' OFFSET ' . 2;
+
+        $data = array();
+        
+        if ($limit || $page) {
+            $query = 'SELECT * FROM ' . $this->table . ' ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . ($page - 1) * $limit;
+            $countQuery = 'SELECT COUNT(*) as "count" FROM ' . $this->table .' ORDER BY id DESC ';
+            $stmt = $this->conn->prepare($countQuery);
+            
+            if($stmt->execute()){
+                $rows = $stmt->fetch(PDO::FETCH_ASSOC);
+                $count = $rows['count']; 
+                $data['pages'] = ceil($count / $limit);
+                $data['active_page'] = empty($page)?'1':$page;
+            }
         }
 
         // Execute query
-        $result['categories'] = $this->executeQuery($query);
+        $data['categories'] = $this->executeQuery($query);
 
-        return json_encode($result);
+        return json_encode($data);
     }
 
     //Read Rooms
-    public function readRooms($categoryId = null)
+    public function readRooms($categoryId = null, $limit = null, $page = null)
     {
         if (!$this->conn || !$categoryId) return null;
         $this->table = 'rooms';
         // Create Query
         $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
-
+        $data = array();
+        
+        if ($limit || $page) {
+            $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . ($page - 1) * $limit;
+            $countQuery = 'SELECT COUNT(*) as "count" FROM ' . $this->table .' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
+            $stmt = $this->conn->prepare($countQuery);
+            
+            if($stmt->execute()){
+                $rows = $stmt->fetch(PDO::FETCH_ASSOC);
+                $count = $rows['count']; 
+                $data['pages'] = ceil($count / $limit);
+                $data['active_page'] = empty($page)?'1':$page;
+            }
+        }
         // Execute query
         $result = $this->executeQuery($query);
 
-        $data = array();
         foreach ($result as $row) {
             // Convert Image to base64
             $image = $this->convertImage("rooms/", $row['img']);
@@ -61,17 +85,30 @@ class Oboy
     }
 
     //Read Oboy
-    public function readOboy($categoryId = null)
+    public function readOboy($categoryId = null, $limit = null, $page = null)
     {
         if (!$this->conn || !$categoryId) return null;
         $this->table = 'oboyimages';
         // Create Query
         $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
+        $data = array();
+        
+        if ($limit || $page) {
+            $query = 'SELECT * FROM ' . $this->table . ' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . ($page - 1) * $limit;
+            $countQuery = 'SELECT COUNT(*) as "count" FROM ' . $this->table .' WHERE room_category_id=' . $categoryId . ' ORDER BY id DESC ';
+            $stmt = $this->conn->prepare($countQuery);
+            
+            if($stmt->execute()){
+                $rows = $stmt->fetch(PDO::FETCH_ASSOC);
+                $count = $rows['count']; 
+                $data['pages'] = ceil($count / $limit);
+                $data['active_page'] = empty($page)?'1':$page;
+            }
+        }
 
         // Execute query
         $result = $this->executeQuery($query);
 
-        $data = array();
         foreach ($result as $row) {
             // Get currency
             $usd = $this->getCurrency('usd', $row['article']);
@@ -86,7 +123,7 @@ class Oboy
                 'firma' => $firma,
                 'id' => $row['id'],
                 'name' => $row['name'],
-                'img' => $image,
+               'img' => $image,
                 'article' => $row['article'],
                 'room_id' => $row['rooms_id'],
                 'room_category_id' => $row['room_category_id'],

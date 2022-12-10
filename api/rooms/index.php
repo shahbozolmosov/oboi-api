@@ -22,6 +22,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         // Filter Params Value
         $categoryId = intval($_GET['categoryId']);
 
+        if (isset($_GET['limit']) && !empty($_GET['limit'])) {
+            if (!is_numeric($_GET['limit']) || $_GET['limit'] < 1) { // CHECK LIMIT
+                http_response_code(400);
+                exit('Bad request!');
+            }
+            if (isset($_GET['page'])) { // CHECK PAGE
+                if(empty($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+                    http_response_code(400);
+                    exit('Bad request!');
+                }
+                $page = $_GET['page'];
+
+            }else
+                $page = 1;
+
+            $limit = $_GET['limit'];
+
+            // Categories query
+            $result = $oboy->readRooms($categoryId,$limit, $page);
+            echo $result;
+            exit;
+        }
         // Rooms query
         $result = $oboy->readRooms($categoryId);
 

@@ -19,14 +19,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $page = $database->filter($_GET['page']);
 
     if (isset($limit) && !empty($limit)) {
-        if(!is_numeric($limit)) { // CHECK LIMIT
+        if(!is_numeric($limit) || $_GET['limit'] < 1) { // CHECK LIMIT
             http_response_code(400);
-            exit('Bad request');
+            exit('Bad request!');
         }
-        if(!isset($page) || empty($page) || !is_numeric($page)) { // CHECK PAGE
-            http_response_code(400);
-            exit('Bad request');
-        }
+        if (isset($_GET['page'])) { // CHECK PAGE
+            if(empty($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+                http_response_code(400);
+                exit('Bad request!');
+            }
+            $page = $_GET['page'];
+
+        }else
+            $page = 1;
 
         // Categories query
         $result = $oboy->readCategories($limit, $page);
