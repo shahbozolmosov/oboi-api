@@ -17,8 +17,20 @@ $oboy = new Oboy($db);
 
 // GET Request
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get Rooms by categoryId
-    if (isset($_GET['categoryId'])) {
+    if (isset($_GET['id'])) { // Get Room by id
+        if (empty($_GET['id']) || !is_numeric($_GET['id']) || $_GET['id'] < 1) {
+            http_response_code(400);    
+            exit('Bad request!');
+        }
+        // Single Room Query
+        $result = $oboy->readSingleRoom($_GET['id']);
+        if(!$result) {
+            http_response_code(404);
+            exit;
+        }
+        echo $result;
+        exit;
+    } else if (isset($_GET['categoryId'])) { // Get Rooms by categoryId
         // Filter Params Value
         $categoryId = intval($_GET['categoryId']);
 
@@ -28,19 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 exit('Bad request!');
             }
             if (isset($_GET['page'])) { // CHECK PAGE
-                if(empty($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+                if (empty($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
                     http_response_code(400);
                     exit('Bad request!');
                 }
                 $page = $_GET['page'];
-
-            }else
+            } else
                 $page = 1;
 
             $limit = $_GET['limit'];
 
             // Categories query
-            $result = $oboy->readRooms($categoryId,$limit, $page);
+            $result = $oboy->readRooms($categoryId, $limit, $page);
             echo $result;
             exit;
         }
@@ -57,7 +68,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     http_response_code(400);
     exit();
-
 }
-
-

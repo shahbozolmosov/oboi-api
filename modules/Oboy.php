@@ -1,5 +1,6 @@
 <?php
 
+use LDAP\Result;
 
 class Oboy
 {
@@ -43,7 +44,35 @@ class Oboy
 
         return json_encode($data);
     }
+    // Read Single Room
+    public function readSingleRoom($id) 
+    {
+        if (!$this->conn || !$id) return null;
+        $this->table = 'rooms';
+        // Create Query
+        $query = 'SELECT * FROM ' . $this->table . ' WHERE id=' . $id;
+        $data = array();
 
+        // Execute query
+        $result = $this->executeQuery($query);
+        foreach ($result as $row) {
+            // Convert Image to base64
+            $image = $this->convertImage("rooms/", $row['img']);
+            $bgImage = $this->convertImage("rooms/", $row['bgimg']);
+            $data['rooms'][] = [
+                'id' => $row['id'],
+                'img' => $image,
+                'bgimg' => $bgImage,
+                'room_category_id' => $row['room_category_id'],
+            ];
+
+        }
+        
+        
+        // echo count($data['rooms']);
+        // exit
+        return isset($data['rooms']) && count($data['rooms']) ? json_encode($data) : false;
+    }
     //Read Rooms
     public function readRooms($categoryId = null, $limit = null, $page = null)
     {
@@ -81,7 +110,7 @@ class Oboy
 
         }
 
-        return count($data) ? json_encode($data) : false;
+        return count($data['rooms']) ? json_encode($data) : false;
     }
 
     //Read Oboy
