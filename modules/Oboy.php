@@ -55,23 +55,18 @@ class Oboy
 
         // Execute query
         $result = $this->executeQuery($query);
-        foreach ($result as $row) {
-            // Convert Image to base64
-            $image = $this->convertImage("rooms/", $row['img']);
-            $bgImage = $this->convertImage("rooms/", $row['bgimg']);
-            $data['rooms'][] = [
-                'id' => $row['id'],
-                'img' => $image,
-                'bgimg' => $bgImage,
-                'room_category_id' => $row['room_category_id'],
-            ];
-
-        }
+        $result = $result[0];
+        // Convert Image to base64
+        $image = $this->convertImage("rooms/", $result['img']);
+        $bgImage = $this->convertImage("rooms/", $result['bgimg']);
+        $data['room'] = [
+            'id' => $result['id'],
+            'img' => $image,
+            'bgimg' => $bgImage,
+            'room_category_id' => $result['room_category_id'],
+        ];
         
-        
-        // echo count($data['rooms']);
-        // exit
-        return isset($data['rooms']) && count($data['rooms']) ? json_encode($data) : false;
+        return count($data['room']) ? json_encode($data) : false;
     }
     //Read Rooms
     public function readRooms($categoryId = null, $limit = null, $page = null)
