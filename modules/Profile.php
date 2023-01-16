@@ -93,6 +93,8 @@ class Profile extends User
             $stmt->bindParam(':userId', $userId);
             $stmt->execute();
             $orderData = [];
+            $orderData['orders'] = [];
+            $orderData['balans'] = '';
             // Fetch data
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $newRow = [
@@ -109,17 +111,9 @@ class Profile extends User
                 $orderData['balans'] = $userBalans;
             }
 
-            if ($orderData['orders']) {
-                return [
-                    'data' => $orderData,
-                    'status_code' => 200
-                ];
-            }
             return [
-                'data' => [
-                    'message' => 'Ma\'lumot topilmadi!.'
-                ],
-                'status_code' => 404
+                'data' => $orderData,
+                'status_code' => 200
             ];
         }
 

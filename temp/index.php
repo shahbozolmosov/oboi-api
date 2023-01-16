@@ -4,7 +4,6 @@ require "../modules/Temp.php";
 // Instantiate DB & connect
 $database = new Database();
 $db = $database->connect();
-
 // Instantiate temp object
 $temp = new Temp($db);
 if (isset($_GET['image']) || !empty($_GET['image'])) {

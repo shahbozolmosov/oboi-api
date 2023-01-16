@@ -26,12 +26,13 @@ class Temp
         $name = $this->generateName();
         $name = $this->base64_to_jpeg($image, $name . '.jpg');
         // CREATE QUERY
+        $time = time();
         $query = 'INSERT INTO temp_file SET name=:name, create_at=:create_at';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':create_at', time());
+        $stmt->bindParam(':create_at', $time);
         if ($stmt->execute()) {
-            return ['image' => 'http://oboi-api/temp/?image=' . $name, 'error' => 0];
+            return ['image' => 'http://localhost/oboi-api/temp/?image=' . $name, 'error' => 0];
         }
         return ['message' => 'Ichki xatolik! Qaytadan urinib ko\'ring!', 'error' => 1];
     }

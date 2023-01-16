@@ -46,9 +46,11 @@ class User
         $userData = $this->getUserData();
 
         if ($userData) { // UPDATE USER VERIFICATION CODE
+
             $result = $this->updateUserCode($userData['id']);
             if ($result !== 'no') return $result;
         } else { // CREATE USER WITH ADD VERIFIVATION CODE
+
             $result = $this->createUser();
             if ($result !== 'no') return $result;
         }
@@ -194,48 +196,50 @@ class User
         $stmt->bindParam(':telefon', $this->telefon);
         $stmt->execute();
         $userActionData = $stmt->fetch(PDO::FETCH_ASSOC);
-        $lastAction = $userActionData['urinish'];
-        $lastActionTime = $userActionData['last'];
-        $userId = $userActionData['id'];
-
-        if ($lastAction > $count && $userActionData) {
-            $time = time() - $lastActionTime;
-            // Check user wait time
-            if ($lastAction > $count && $lastAction <= ($count + 3)) {
-                $this->waitTimeLimit = 120; // 2 minute
-            } else if ($lastAction > ($count + 3) && $lastAction <= $this->maxLimitAction) {
-                $this->waitTimeLimit = 1800; // 30 minute
-            } else if ($lastAction > $this->maxLimitAction) {
-                $this->waitTimeLimit = $this->waitMaxTimeLimit; // 20 hour
-            } else if ($time > $this->waitMaxTimeLimit) { // end wait max time limit
-                $result = $this->updateUserAction(0, $userId);
-                if ($result !== 'ok') return $result;
-            }
-
-            $liveWaitTime = $this->waitTimeLimit - $time;
-            if ($liveWaitTime > 0 && $time < $this->accessTimeLimit) {
-                $formatTime = 0;
-                if ($liveWaitTime <= 3600) {
-                    $m = floor($liveWaitTime / 60);
-                    $s = floor($liveWaitTime % 60);
-                    $s = $s < 10 ? '0' . $s : $s;
-                    $formatTime = $m . ':' . $s . ' soniyadan so\'ng qayta urinib ko\'ring';
-                } else if ($liveWaitTime > 3600 && $liveWaitTime <= 86400) {
-                    $h = floor($liveWaitTime / 3600);
-                    $m = floor(($liveWaitTime % 3600) / 60);
-                    $m = $m < 10 ? '0' . $m : $m;
-                    $formatTime = $h . ':' . $m . ' soatdan so\'ng qayta urinib ko\'ring';
+        if ($userActionData) {
+            $lastAction = $userActionData['urinish'];
+            $lastActionTime = $userActionData['last'];
+            $userId = $userActionData['id'];
+            if ($lastAction > $count && $userActionData) {
+                $time = time() - $lastActionTime;
+                // Check user wait time
+                if ($lastAction > $count && $lastAction <= ($count + 3)) {
+                    $this->waitTimeLimit = 120; // 2 minute
+                } else if ($lastAction > ($count + 3) && $lastAction <= $this->maxLimitAction) {
+                    $this->waitTimeLimit = 1800; // 30 minute
+                } else if ($lastAction > $this->maxLimitAction) {
+                    $this->waitTimeLimit = $this->waitMaxTimeLimit; // 20 hour
+                } else if ($time > $this->waitMaxTimeLimit) { // end wait max time limit
+                    $result = $this->updateUserAction(0, $userId);
+                    if ($result !== 'ok') return $result;
                 }
 
-                return [
-                    'data' => [
-                        'message' => 'Urinishlar soni ko\'p! ' . $formatTime,
-                        'waitTime' => $liveWaitTime,
-                    ],
-                    'status_code' => 400,
-                ];
+                $liveWaitTime = $this->waitTimeLimit - $time;
+                if ($liveWaitTime > 0 && $time < $this->accessTimeLimit) {
+                    $formatTime = 0;
+                    if ($liveWaitTime <= 3600) {
+                        $m = floor($liveWaitTime / 60);
+                        $s = floor($liveWaitTime % 60);
+                        $s = $s < 10 ? '0' . $s : $s;
+                        $formatTime = $m . ':' . $s . ' soniyadan so\'ng qayta urinib ko\'ring';
+                    } else if ($liveWaitTime > 3600 && $liveWaitTime <= 86400) {
+                        $h = floor($liveWaitTime / 3600);
+                        $m = floor(($liveWaitTime % 3600) / 60);
+                        $m = $m < 10 ? '0' . $m : $m;
+                        $formatTime = $h . ':' . $m . ' soatdan so\'ng qayta urinib ko\'ring';
+                    }
+
+                    return [
+                        'data' => [
+                            'message' => 'Urinishlar soni ko\'p! ' . $formatTime,
+                            'waitTime' => $liveWaitTime,
+                        ],
+                        'status_code' => 400,
+                    ];
+                }
             }
         }
+
         return 'ok';
     }
 
@@ -333,11 +337,12 @@ class User
                     $resTel = $this->telefon;
                     $resTel = '********' . ($resTel[strlen($resTel) - 2] . $resTel[strlen($resTel) - 1]);
                     // return success message
+                    $userData['userData'] = [
+                        'message' => 'Biz ' . $resTel . ' raqamingizga SMS orqali faollashtirish kodini yubordik!',
+                        'accessTime' => $this->accessTimeLimit,
+                    ];
                     return [
-                        'data' => [
-                            'message' => $resTel . ' raqamingizga tasdiqlash kodini yubordik!',
-                            'accessTime' => $this->accessTimeLimit,
-                        ],
+                        'data' => $userData,
                         'status_code' => 200
                     ];
                 }
@@ -354,8 +359,8 @@ class User
         if (!$clear) {
             // Send message
             $result = $this->sendMessage($this->telefon, $code);
-        }else {
-            $result ='ok';
+        } else {
+            $result = 'ok';
         }
         if ($result === 'ok') {
             // Change table

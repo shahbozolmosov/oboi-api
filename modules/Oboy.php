@@ -138,14 +138,14 @@ class Oboy
             $usd = $this->getCurrency('usd', $row['article']);
             $price = $this->getOboyPrice($row['article']);
             // $price = ($price * 1.37 * $usd);
-            $price = ($price['price'] * 1.37 * $usd);
+            // $price = ($price['price'] * 1.37 * $usd);
             // Get Firma
             $firma = $this->getFirma($row['article']);
             // Convert Image to base64
             $image = $this->convertImage("oboys/", $row['img']);
             $data['oboys'][] = [
                 'price' => $price,
-                'firma' => $firma['name'],
+                // 'firma' => $firma['name'],
                 'id' => $row['id'],
                 'name' => $row['name'],
                'img' => $image,

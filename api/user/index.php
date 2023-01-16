@@ -1,6 +1,6 @@
 <?php
 // headers
-header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Origin: *');
 header("Content-Type: application/json");
 header('Access-Control-Allow-Methods: GET, POST, PUT');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Content-Type, Access-Control-Allow-Methods, Authorization, X-Requested-With');
@@ -26,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { //POST
 
     // Validation action
     validation($data, ['action']);
-
-    $user->telefon = $database->filterPhoneNumber($data->telefon);
+    
+    if(isset($data->telefon)) $user->telefon = $database->filterPhoneNumber($data->telefon);
 
     if ($data->action === 'register') {// REGISTER
         // Validation telefon
