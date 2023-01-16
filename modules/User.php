@@ -274,31 +274,6 @@ class User
         }
     }
 
-    // Update user actions
-    protected function updateUserAction($actions, $userId)
-    {
-        $this->table = 'actions';
-        // Create query
-        $query = 'UPDATE ' . $this->table . ' SET urinish=:actions, last=:last WHERE id=:id';
-
-        // Prepare statment
-        $stmt = $this->conn->prepare($query);
-        $time = time();
-        // Bind data
-        $stmt->bindParam(':actions', $actions);
-        $stmt->bindParam(':last', $time);
-        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
-
-        // Execute query
-        if ($stmt->execute()) return 'ok';
-        return [
-            'data' => [
-                'erorr' . 'Erorr: ' . $stmt->error,
-            ],
-            'status_code' => 500
-        ];
-    }
-
     //Create new user
     private function createUser()
     {
@@ -442,6 +417,58 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    
+    // Update user actions
+    protected function updateUserAction($actions, $userId)
+    {
+        $this->table = 'actions';
+        // Create query
+        $query = 'UPDATE ' . $this->table . ' SET urinish=:actions, last=:last WHERE id=:id';
+
+        // Prepare statment
+        $stmt = $this->conn->prepare($query);
+        $time = time();
+        // Bind data
+        $stmt->bindParam(':actions', $actions);
+        $stmt->bindParam(':last', $time);
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+
+        // Execute query
+        if ($stmt->execute()) return 'ok';
+        return [
+            'data' => [
+                'erorr' . 'Erorr: ' . $stmt->error,
+            ],
+            'status_code' => 500
+        ];
+    }
+
+    
+    // Update user action Telefon
+    protected function updateUserActionTel($newNumber, $userId)
+    {
+        $this->table = 'actions';
+        // Create query
+        $query = 'UPDATE ' . $this->table . ' SET telefon=:telefon, last=:last WHERE id=:id';
+
+        // Prepare statment
+        $stmt = $this->conn->prepare($query);
+        $time = time();
+        // Bind data
+        $stmt->bindParam(':telefon', $newNumber);
+        $stmt->bindParam(':last', $time);
+        $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+
+        // Execute query
+        if ($stmt->execute()) return 'ok';
+        return [
+            'data' => [
+                'erorr' . 'Erorr: ' . $stmt->error,
+            ],
+            'status_code' => 500
+        ];
+    }
+    
     // Generate message code
     protected function generateCode()
     {

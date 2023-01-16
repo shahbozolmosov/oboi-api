@@ -234,11 +234,16 @@ class Profile extends User
             //Update user action
             $result = $this->updateUserAction($action, $actionUserId);
             if ($result !== 'ok') return $result;
+
             if ($this->code === $code) {
                 $this->updateUserCode($userId, true);
 
+
                 $result = $this->updateUserDataQuery();
                 if($result != 'ok') return $result;
+
+                $this->updateUserActionTel($telefon, $userId);
+                if ($result !== 'ok') return $result;
 
                 //Update user action
                 $result = $this->updateUserAction(0, $actionUserId);
