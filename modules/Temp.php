@@ -32,7 +32,7 @@ class Temp
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':create_at', $time);
         if ($stmt->execute()) {
-            return ['image' => 'http://localhost/oboi-api/temp/?image=' . $name, 'error' => 0];
+            return ['image' => 'http://localhost/vakhidov/oboi-api/temp/?image=' . $name, 'error' => 0];
         }
         return ['message' => 'Ichki xatolik! Qaytadan urinib ko\'ring!', 'error' => 1];
     }
